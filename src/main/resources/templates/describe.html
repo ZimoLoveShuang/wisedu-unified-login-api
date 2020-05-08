@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>获取功能描述的HTML代码</title>
+</head>
+<body>
+<div id="div1">
+    <p>请在这里写功能描述的说明性文档，然后点击左下角复制按钮，然后粘贴到配置文件中</p>
+</div>
+<button id="btn1">复制</button>
+<script src="//unpkg.com/wangeditor/release/wangEditor.min.js"></script>
+<script type="text/javascript">
+    var E = window.wangEditor
+    var editor = new E('#div1')
+    editor.create()
+
+    document.getElementById('btn1').addEventListener('click', function () {
+        // 读取 html
+        var html = editor.txt.html();
+        const input = document.createElement('input');
+        document.body.appendChild(input);
+        input.setAttribute('value', html);
+        input.select();
+        if (document.execCommand('copy')) {
+            document.execCommand('copy');
+            console.log('复制成功');
+            alert('复制成功');
+        }
+        document.body.removeChild(input);
+    }, false)
+</script>
+</body>
+</html>

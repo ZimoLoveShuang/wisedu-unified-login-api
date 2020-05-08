@@ -1,0 +1,57 @@
+\wisedu-unified-login-api
+│  .gitignore # git版本管理配置
+│  pom.xml # maven依赖包管理
+│  README.md # 说明文件
+│  tree.txt # 项目树形结构，使用tree命令生成
+│  
+├─src # 源代码文件夹
+│  ├─main # main
+│  │  ├─java # java代码
+│  │  │  └─wiki
+│  │  │      └─zimo
+│  │  │          └─wiseduunifiedloginapi # basePackage
+│  │  │              │  WiseduUnifiedLoginApiApplication.java # springboot启动类
+│  │  │              │  
+│  │  │              ├─configuration # 配置
+│  │  │              │      SwaggerConfiguration.java # 注入swagger到spring容器
+│  │  │              │      
+│  │  │              ├─controller # controller
+│  │  │              │      ApiController.java # api
+│  │  │              │      
+│  │  │              ├─helper # 一些工具
+│  │  │              │      AESHelper.java # aes加密解密
+│  │  │              │      ImageHelper.java # 图片保存和二值化处理
+│  │  │              │      TesseractOCRHelper.java # ocr识别验证码
+│  │  │              │      
+│  │  │              └─service # service
+│  │  │                  │  LoginService.java # 模拟登陆
+│  │  │                  │  
+│  │  │                  └─impl
+│  │  │                          LoginServiceImpl.java # 模拟登陆实现
+│  │  │                          
+│  │  └─resources
+│  │      │  application.yml # springboot配置
+│  │      │  
+│  │      ├─static
+│  │      └─templates
+│  │              describe.html # 一个帮助生成功能描述的html
+│  │              
+│  └─test # test
+│      └─java
+│          └─wiki
+│              └─zimo
+│                  └─wiseduunifiedloginapi
+│                          WiseduUnifiedLoginApiApplicationTests.java
+│
+├─screenshots # 截图
+└─tessdata # tess4j 训练集
+    │  eng.traineddata
+    │  osd.traineddata
+    │  pdf.ttf
+    │  pdf.ttx
+    │  
+    └─configs
+            api_config
+            digits
+            hocr
+            
