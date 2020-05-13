@@ -74,9 +74,9 @@
     
     ```
 
-# api文档
+# [api文档](http://www.zimo.wiki:8080/wisedu-unified-login-api-v1.0/swagger-ui.html#/api-controller)
 
-1. 部署系统后访问`http://host:port/wisedu-unified-login-api/swagger-ui.html#/api-controller`可查看文档
+1. 部署系统后访问`http://host:port/wisedu-unified-login-api/swagger-ui.html#/api-controller`可查看文档(点击本章标题也可以查看文档)
     ![](screenshots/3f446aae.png)
 2. `host`：为你的服务器地址，如果是本地，默认是`localhost`
 3. `port`：为你的服务器端口，如果未修改，默认是`8080`
