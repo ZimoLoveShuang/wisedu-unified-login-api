@@ -1,7 +1,7 @@
 server:
   port: 8080
   servlet:
-    context-path: /wisedu-unified-login-api
+    context-path: /wisedu-unified-login-api-v1.0
 spring:
   profiles:
     active: dev

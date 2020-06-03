@@ -24,6 +24,7 @@ import java.util.Map;
 
 @Service
 public class LoginServiceImpl implements LoginService {
+
     @Value("${LOGIN_API}")
     private String LOGIN_API;// 登陆接口
     @Value("${NEEDCAPTCHA_API}")
@@ -43,6 +44,10 @@ public class LoginServiceImpl implements LoginService {
 
         if (StringUtils.isEmpty(captcha_url)) {
             captcha_url = CAPTCHA_API;
+        }
+
+        if (StringUtils.isAllBlank(username) || StringUtils.isAllBlank(password)) {
+            throw new RuntimeException("用户名或者密码为空");
         }
 
         // 根据login_url判断类型
@@ -68,8 +73,28 @@ public class LoginServiceImpl implements LoginService {
         Connection con = Jsoup.connect(login_url).followRedirects(true);
         Connection.Response res = con.execute();
 
-        // 解析登陆页
-        Document doc = res.parse();
+        // 构造请求头
+        Map<String, String> headers = new HashMap<>();
+        String reffer = res.url().toString();
+//        System.out.println("reffer:" + reffer);
+        String host = reffer.substring((res.url().getProtocol() + "://").length(), reffer.indexOf("/iap"));
+//        System.out.println("host:" + host);
+        String origin = reffer.substring(0, reffer.indexOf("/iap"));
+//        System.out.println("origin:" + origin);
+        headers.put("Host", host);
+        headers.put("Connection", "keep-alive");
+        headers.put("Accept", "application/json, text/plain, */*");
+        headers.put("X-Requested-With", "XMLHttpRequest");
+//        headers.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36");
+        headers.put("User-Agent", "Mozilla/5.0 (Linux; Android 4.4.4; OPPO R11 Plus Build/KTU84P) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/33.0.0.0 Safari/537.36");
+        headers.put("Content-Type", "application/x-www-form-urlencoded");
+        headers.put("Origin", origin);
+//        headers.put("Sec-Fetch-Site", "same-origin");
+//        headers.put("Sec-Fetch-Mode", "cors");
+//        headers.put("Sec-Fetch-Dest", "empty");
+        headers.put("Referer", res.url().toString());
+        headers.put("Accept-Encoding", "gzip, deflate, br");
+        headers.put("Accept-Language", "zh-CN,zh;q=0.9");
 
         // 全局cookie
         Map<String, String> cookies = res.cookies();
@@ -80,15 +105,21 @@ public class LoginServiceImpl implements LoginService {
         params.put("password", password);
         params.put("rememberMe", String.valueOf(false));
 
-        // 拿到It
-        Element itElement = doc.getElementById("lt");
-//        System.out.println(itElement);
-        String it = itElement.attr("value");
+        // 申请It
+        String itUrl = login_url.substring(0, login_url.lastIndexOf("/")) + "/security/lt";
+//        System.out.println(itUrl);
+        Document doc = Jsoup.connect(itUrl).ignoreContentType(true).cookies(cookies).post();
+//        System.out.println(doc);
+        JSONObject jsonObject = JSON.parseObject(doc.body().text());
+        if (jsonObject.getInteger("code") != 200) {
+            throw new RuntimeException("申请It失败");
+        }
+        JSONObject result = jsonObject.getJSONObject("result");
+        String it = result.getString("_lt");
         params.put("lt", it);
 
         // 拿到encryptSalt
-        Element encryptSaltElement = doc.getElementById("encryptSalt");
-        String encryptSalt = encryptSaltElement.attr("value");
+        String encryptSalt = result.getString("_encryptSalt");
         // 密码暂时不需要加密
 //        params.put("password", AESHelper.encryptAES(password, encryptSalt));
 
@@ -100,8 +131,7 @@ public class LoginServiceImpl implements LoginService {
 
         // 模拟登陆之前首先请求是否需要验证码接口
         doc = Jsoup.connect(needcaptcha_url + "?username=" + username).cookies(cookies).ignoreContentType(true).get();
-        JSONObject object = JSONObject.parseObject(doc.text());
-        Boolean needCaptcha = object.getBoolean("needCaptcha");
+        Boolean needCaptcha = Boolean.valueOf(doc.body().text());
         if (needCaptcha) {
             // 验证码处理，最多尝试10次
             int time = 10;
@@ -111,13 +141,13 @@ public class LoginServiceImpl implements LoginService {
                 params.put("captcha", code);
 
                 // 模拟登陆
-                return iapSendLoginData(login_url, cookies, params);
+                return iapSendLoginData(login_url, headers, cookies, params);
             }
         } else {
             params.put("captcha", "");
 
             // 模拟登陆
-            return iapSendLoginData(login_url, cookies, params);
+            return iapSendLoginData(login_url, headers, cookies, params);
         }
 
         return null;
@@ -127,43 +157,35 @@ public class LoginServiceImpl implements LoginService {
      * iap发送登陆请求，返回cookies
      *
      * @param login_url
+     * @param headers
      * @param cookies
      * @param params
      * @return
      * @throws Exception
      */
-    private Map<String, String> iapSendLoginData(String login_url, Map<String, String> cookies, Map<String, String> params) throws Exception {
-        Connection con = Jsoup.connect(login_url);
-        Connection.Response login = con.ignoreContentType(true).followRedirects(false).method(Connection.Method.POST).data(params).cookies(cookies).execute();
-        if (login.statusCode() == HttpURLConnection.HTTP_MOVED_TEMP) {
-            // 重定向代表登陆成功
+    private Map<String, String> iapSendLoginData(String login_url, Map<String, String> headers, Map<String, String> cookies, Map<String, String> params) throws Exception {
+        try {
+            Connection con = Jsoup.connect(login_url).headers(headers).ignoreContentType(true).followRedirects(false).cookies(cookies).data(params).method(Connection.Method.POST);
+            Connection.Response res = con.execute();
             // 更新cookie
-            cookies.putAll(login.cookies());
-            // 拿到重定向的地址
-            String location = login.header("location");
-//            System.out.println(location);
-            con = Jsoup.connect(location).ignoreContentType(true).followRedirects(true).method(Connection.Method.POST).cookies(cookies);
-            // 请求，再次更新cookie
-            login = con.execute();
-            cookies.putAll(login.cookies());
-            // 只有登陆成功才返回cookie
-            return cookies;
-        } else if (login.statusCode() == HttpURLConnection.HTTP_OK) {
-            // 登陆失败
-            // 解析登陆结果
-            Document doc = login.parse();
-            JSONObject object = JSON.parseObject(doc.body().text());
-            // 处理登陆结果
-            String resultCode = object.getString("resultCode");
-            if (resultCode.equals("FAIL_UPNOTMATCH")) {
-                // 用户名或者密码错误
-                throw new RuntimeException("用户名或者密码错误");
+            cookies.putAll(res.cookies());
+            JSONObject jsonObject = JSON.parseObject(res.body());
+            String resultCode = jsonObject.getString("resultCode");
+            if (!resultCode.equals("REDIRECT")) {
+                throw new RuntimeException("用户名或密码错误");
             }
-        } else {
-            // 服务器可能出错
-            throw new RuntimeException("教务系统服务器可能出错了，Http状态码是：" + login.statusCode());
+            // 第一次重定向，手动重定向
+            String url = headers.get("Origin") + jsonObject.getString("url");
+            // 后面会有多次重定向，所以开启自动重定向
+            res = Jsoup.connect(url).cookies(cookies).followRedirects(true).ignoreContentType(true).execute();
+            // 再次更新cookie，防爬策略：每个页面一个cookie
+            cookies.putAll(res.cookies());
+            // 登陆成功
+            return cookies;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
         }
-        return null;
     }
 
     /**

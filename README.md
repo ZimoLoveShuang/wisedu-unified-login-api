@@ -76,7 +76,7 @@
 
 # [api文档](http://www.zimo.wiki:8080/wisedu-unified-login-api-v1.0/swagger-ui.html#/api-controller)
 
-1. 部署系统后访问`http://host:port/wisedu-unified-login-api/swagger-ui.html#/api-controller`可查看文档(点击本章标题也可以查看文档)
+1. 部署系统后访问`http://host:port/wisedu-unified-login-api-v1.0/swagger-ui.html#/api-controller`可查看文档(点击本章标题也可以查看文档)
     ![](screenshots/3f446aae.png)
 2. `host`：为你的服务器地址，如果是本地，默认是`localhost`
 3. `port`：为你的服务器端口，如果未修改，默认是`8080`
@@ -110,7 +110,7 @@
 # 其他
 
 1. 理论上支持几乎所有的金智教务系统，`iap`或者`cas`，`加密`或者`没加密`均支持
-2. 电子科技大学的金智教务系统由于加密过于变态，暂时不支持
+2. 电子科技大学的金智教务系统由于加密和混淆过于变态，暂时没有时间分析，所以不支持
 
 # 部署
 
@@ -118,6 +118,11 @@
 2. 打包此项目为：`war`或者`jar`
 3. `war`包放入`tomcat`等容器中，jar包使用`java -jar xxx.jar`命令执行
 4. enjoy it !!!
+
+# 更新
+
+- 2020-06-03 支持更新后的CLOUD方式认证接口 v1.0.1
+- 2020-05-08 开源模拟登陆API接口 v1.0
 
 # 捐赠
 
