@@ -104,6 +104,8 @@ public class LoginServiceImpl implements LoginService {
         params.put("username", username);
         params.put("password", password);
         params.put("rememberMe", String.valueOf(false));
+        params.put("mobile", "");
+        params.put("dllt", "");
 
         // 申请It
         String itUrl = login_url.substring(0, login_url.lastIndexOf("/")) + "/security/lt";
@@ -169,7 +171,22 @@ public class LoginServiceImpl implements LoginService {
             Connection.Response res = con.execute();
             // 更新cookie
             cookies.putAll(res.cookies());
-            JSONObject jsonObject = JSON.parseObject(res.body());
+            // 修复新乡医学院等iap登陆方式可能被多次重定向的问题
+            String body = res.body();
+            if (body.contains("307")) {
+                String location = res.headers().get("Location");
+//                System.out.println(location);
+                res = Jsoup.connect(location).headers(headers).ignoreContentType(true).followRedirects(true).cookies(cookies).data(params).method(Connection.Method.POST).execute();
+//                System.out.println(res.headers());
+//                System.out.println(res.cookies());
+//                System.out.println(res.body());
+                // 更新cookies
+                cookies.putAll(res.cookies());
+                // 更新body
+                body = res.body();
+            }
+            // 然后就是正常流程
+            JSONObject jsonObject = JSON.parseObject(body);
             String resultCode = jsonObject.getString("resultCode");
             if (!resultCode.equals("REDIRECT")) {
                 throw new RuntimeException("用户名或密码错误");
