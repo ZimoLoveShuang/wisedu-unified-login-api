@@ -25,21 +25,20 @@ public class ApiController {
     @ApiOperation(value = "获取登陆金智教务系统后的cookies")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "login_url", value = "金智教务系统登陆页url", paramType = "query", required = false, dataType = "String"),
-            @ApiImplicitParam(name = "needcaptcha_url", value = "金智教务系统是否需要验证码url", paramType = "query", required = false, dataType = "String"),
-            @ApiImplicitParam(name = "captcha_url", value = "金智教务系统验证码url", paramType = "query", required = false, dataType = "String"),
             @ApiImplicitParam(name = "username", value = "学号或者工号", paramType = "query", required = true, dataType = "String"),
             @ApiImplicitParam(name = "password", value = "密码", paramType = "query", required = true, dataType = "String"),
     })
     public Map<String, Object> login(@RequestParam(value = "login_url", required = false) String login_url,
-                                     @RequestParam(value = "needcaptcha_url", required = false) String needcaptcha_url,
-                                     @RequestParam(value = "captcha_url", required = false) String captcha_url,
                                      @RequestParam("username") String username,
                                      @RequestParam("password") String password) {
         Map<String, Object> map = new HashMap<>();
         try {
             map.put("code", 0);
             map.put("msg", "login success!");
-            Map<String, String> cookies = loginService.login(login_url, needcaptcha_url, captcha_url, username, password);
+            Map<String, String> cookies = loginService.login(login_url, username, password);
+            if (cookies == null) {
+                throw new RuntimeException("登陆失败，cookies返回为null");
+            }
             StringBuffer buffer = new StringBuffer();
             int size = 0;
             for (String key : cookies.keySet()) {
