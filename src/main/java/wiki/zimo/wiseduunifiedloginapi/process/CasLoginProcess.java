@@ -111,21 +111,47 @@ public class CasLoginProcess {
         boolean isNeedCaptcha = Boolean.valueOf(doc.body().text());
 //        System.out.println(isNeedCaptcha);
         if (isNeedCaptcha) {
-            // 识别验证码后模拟登陆，最多尝试10次
-            int time = 10;
+            // 识别验证码后模拟登陆，最多尝试20次
+            int time = 20;
             while (time-- > 0) {
                 String code = ocrCaptcha(cookies, headers, loginEntity.getCaptchaUrl());
 //                System.out.println(code);
                 params.put("captchaResponse", code);
 
                 // 模拟登陆
-                return casSendLoginData(loginEntity.getLoginUrl(), cookies, params);
+                con = Jsoup.connect(loginEntity.getLoginUrl());
+                Connection.Response login = con.ignoreContentType(true).followRedirects(false).method(Connection.Method.POST).data(params).cookies(cookies).execute();
+                if (login.statusCode() == HttpURLConnection.HTTP_MOVED_TEMP) {
+                    // 重定向代表登陆成功
+                    // 更新cookie
+                    cookies.putAll(login.cookies());
+                    // 拿到重定向的地址
+                    String location = login.header("location");
+                    con = Jsoup.connect(location).ignoreContentType(true).followRedirects(true).method(Connection.Method.POST).cookies(cookies);
+                    // 请求，再次更新cookie
+                    login = con.execute();
+                    cookies.putAll(login.cookies());
+                    // 只有登陆成功才返回cookie
+                    return cookies;
+                } else if (login.statusCode() == HttpURLConnection.HTTP_OK) {
+                    // 登陆失败
+                    doc = login.parse();
+                    Element msg = doc.getElementById("msg");
+//                    System.out.println(msg);
+                    if (msg.text().equals("您提供的用户名或者密码有误")) {
+                        throw new RuntimeException("用户名或者密码错误");
+                    }
+                } else {
+                    // 其他状态码代表服务器可能出错
+                    throw new RuntimeException("教务系统服务器可能出错了，Http状态码是：" + login.statusCode());
+                }
             }
+            // 执行到这里就代表验证码识别尝试已经达到了最大的次数
+            throw new RuntimeException("验证码识别错误，请重试");
         } else {
             // 直接模拟登陆
             return casSendLoginData(loginEntity.getLoginUrl(), cookies, params);
         }
-        return null;
     }
 
     /**
@@ -159,7 +185,7 @@ public class CasLoginProcess {
             // 登陆失败
             Document doc = login.parse();
             Element msg = doc.getElementById("msg");
-//            System.out.println(msg);
+            System.out.println(msg);
             if (msg.text().equals("您提供的用户名或者密码有误")) {
                 throw new RuntimeException("用户名或者密码错误");
             }
@@ -183,6 +209,7 @@ public class CasLoginProcess {
         while (true) {
             String filePach = System.getProperty("user.dir") + File.separator + System.currentTimeMillis() + ".jpg";
 //            System.out.println(filePach);
+//            System.out.println(captcha_url);
             Connection.Response response = Jsoup.connect(captcha_url).headers(headers).cookies(cookies).ignoreContentType(true).execute();
 
             // 四位验证码，背景有噪点

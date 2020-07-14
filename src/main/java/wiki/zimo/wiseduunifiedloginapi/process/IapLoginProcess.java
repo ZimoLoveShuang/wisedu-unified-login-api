@@ -103,8 +103,8 @@ public class IapLoginProcess {
         Boolean needCaptcha = Boolean.valueOf(JSON.parseObject(doc.body().text()).getString("needCaptcha"));
 //        System.out.println(needCaptcha);
         if (needCaptcha) {
-            // 验证码处理，最多尝试10次
-            int time = 10;
+            // 验证码处理，最多尝试20次
+            int time = 20;
             while (time-- > 0) {
                 String captcha_url = loginEntity.getCaptchaUrl() + "?ltId=" + it;
 //                System.out.println(captcha_url);
@@ -114,16 +114,51 @@ public class IapLoginProcess {
 //                System.out.println(code);
 
                 // 模拟登陆
-                return iapSendLoginData(login_url, headers, cookies, params);
+                con = Jsoup.connect(login_url).headers(headers).ignoreContentType(true).followRedirects(false).cookies(cookies).data(params).method(Connection.Method.POST);
+                res = con.execute();
+                // 更新cookie
+                cookies.putAll(res.cookies());
+                String body = res.body();
+                // 修复新乡医学院等iap登陆方式可能被多次重定向的问题
+                if (body.contains("307")) {
+                    String location = res.headers().get("Location");
+                    res = Jsoup.connect(location).headers(headers).ignoreContentType(true).followRedirects(true).cookies(cookies).data(params).method(Connection.Method.POST).execute();
+                    // 更新cookies
+                    cookies.putAll(res.cookies());
+                    // 更新body
+                    body = res.body();
+                }
+                // 然后就是正常流程
+                jsonObject = JSON.parseObject(body);
+                String resultCode = jsonObject.getString("resultCode");
+//                System.out.println(body);
+                // 如果验证码不正确，继续尝试
+                if (resultCode.equals("CAPTCHA_NOTMATCH")) {
+                    continue;
+                }
+
+                if (!resultCode.equals("REDIRECT")) {
+                    throw new RuntimeException("用户名或密码错误");
+                }
+
+                // 第一次重定向，手动重定向
+                String url = headers.get("Origin") + jsonObject.getString("url");
+                // 后面会有多次重定向，所以开启自动重定向
+                res = Jsoup.connect(url).cookies(cookies).followRedirects(true).ignoreContentType(true).execute();
+                // 再次更新cookie，防爬策略：每个页面一个cookie
+                cookies.putAll(res.cookies());
+                // 登陆成功
+                return cookies;
             }
+
+            // 执行到这里说明验证码识别结果一直不正确
+            throw new RuntimeException("验证码识别错误，请重试");
         } else {
             params.put("captcha", "");
 
             // 模拟登陆
             return iapSendLoginData(login_url, headers, cookies, params);
         }
-
-        return null;
     }
 
     /**
@@ -137,45 +172,41 @@ public class IapLoginProcess {
      * @throws Exception
      */
     private Map<String, String> iapSendLoginData(String login_url, Map<String, String> headers, Map<String, String> cookies, Map<String, String> params) throws Exception {
-        try {
-            Connection con = Jsoup.connect(login_url).headers(headers).ignoreContentType(true).followRedirects(false).cookies(cookies).data(params).method(Connection.Method.POST);
-            Connection.Response res = con.execute();
-            // 更新cookie
-            cookies.putAll(res.cookies());
-            // 修复新乡医学院等iap登陆方式可能被多次重定向的问题
-            String body = res.body();
-            System.out.println(res.headers());
-            if (body.contains("307")) {
-                String location = res.headers().get("Location");
+        Connection con = Jsoup.connect(login_url).headers(headers).ignoreContentType(true).followRedirects(false).cookies(cookies).data(params).method(Connection.Method.POST);
+        Connection.Response res = con.execute();
+        // 更新cookie
+        cookies.putAll(res.cookies());
+        // 修复新乡医学院等iap登陆方式可能被多次重定向的问题
+        String body = res.body();
+//            System.out.println(res.headers());
+        if (body.contains("307")) {
+            String location = res.headers().get("Location");
 //                System.out.println(location);
-                res = Jsoup.connect(location).headers(headers).ignoreContentType(true).followRedirects(true).cookies(cookies).data(params).method(Connection.Method.POST).execute();
+            res = Jsoup.connect(location).headers(headers).ignoreContentType(true).followRedirects(true).cookies(cookies).data(params).method(Connection.Method.POST).execute();
 //                System.out.println(res.headers());
 //                System.out.println(res.cookies());
 //                System.out.println(res.body());
-                // 更新cookies
-                cookies.putAll(res.cookies());
-                // 更新body
-                body = res.body();
-            }
-            // 然后就是正常流程
-            JSONObject jsonObject = JSON.parseObject(body);
-//            System.out.println(jsonObject.toString());
-            String resultCode = jsonObject.getString("resultCode");
-            if (!resultCode.equals("REDIRECT")) {
-                throw new RuntimeException("用户名或密码错误");
-            }
-            // 第一次重定向，手动重定向
-            String url = headers.get("Origin") + jsonObject.getString("url");
-            // 后面会有多次重定向，所以开启自动重定向
-            res = Jsoup.connect(url).cookies(cookies).followRedirects(true).ignoreContentType(true).execute();
-            // 再次更新cookie，防爬策略：每个页面一个cookie
+            // 更新cookies
             cookies.putAll(res.cookies());
-            // 登陆成功
-            return cookies;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
+            // 更新body
+            body = res.body();
         }
+        // 然后就是正常流程
+        JSONObject jsonObject = JSON.parseObject(body);
+//        System.out.println(jsonObject.toString());
+        String resultCode = jsonObject.getString("resultCode");
+//        System.out.println(body);
+        if (!resultCode.equals("REDIRECT")) {
+            throw new RuntimeException("用户名或密码错误");
+        }
+        // 第一次重定向，手动重定向
+        String url = headers.get("Origin") + jsonObject.getString("url");
+        // 后面会有多次重定向，所以开启自动重定向
+        res = Jsoup.connect(url).cookies(cookies).followRedirects(true).ignoreContentType(true).execute();
+        // 再次更新cookie，防爬策略：每个页面一个cookie
+        cookies.putAll(res.cookies());
+        // 登陆成功
+        return cookies;
     }
 
     /**
