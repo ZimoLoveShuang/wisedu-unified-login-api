@@ -18,6 +18,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 金智统一cas登陆
@@ -40,6 +42,7 @@ public class CasLoginProcess {
 
         // 解析登陆页
         Document doc = res.parse();
+//        System.out.println(doc);
 
         // 全局cookie
         Map<String, String> cookies = res.cookies();
@@ -52,9 +55,31 @@ public class CasLoginProcess {
 
         // 处理加密的盐
         Element saltElement = doc.getElementById("pwdDefaultEncryptSalt");
+
         String salt = null;
         if (saltElement != null) {
             salt = saltElement.val();
+        }
+
+        // 网页中可能不存在id为pwdDefaultEncryptSalt的元素中，但提交的密码参数仍然需要加密
+        if (saltElement == null) {
+            Elements scripts = doc.getElementsByTag("script");
+            for (Element script : scripts) {
+                if (script.data().contains("pwdDefaultEncryptSalt")) {
+//                    System.out.println(script.data());
+                    // 用正则表达式匹配盐
+                    String pattern = "\"\\w{16}\"";
+                    Pattern p = Pattern.compile(pattern);
+                    Matcher m = p.matcher(script.data());
+                    if (m.find()) {
+                        String group = m.group();
+                        salt = group.substring(1, group.length() - 1);
+//                        System.out.println(group);
+//                        System.out.println(salt);
+                    }
+                    break;
+                }
+            }
         }
 
 //        System.out.println("盐是 " + salt);
@@ -167,6 +192,7 @@ public class CasLoginProcess {
         Connection con = Jsoup.connect(login_url);
 //        System.out.println(login_url);
         Connection.Response login = con.ignoreContentType(true).followRedirects(false).method(Connection.Method.POST).data(params).cookies(cookies).execute();
+//        System.out.println(params);
 //        System.out.println(login.statusCode());
         if (login.statusCode() == HttpURLConnection.HTTP_MOVED_TEMP) {
             // 重定向代表登陆成功
@@ -185,7 +211,7 @@ public class CasLoginProcess {
             // 登陆失败
             Document doc = login.parse();
             Element msg = doc.getElementById("msg");
-            System.out.println(msg);
+//            System.out.println(msg);
             if (msg.text().equals("您提供的用户名或者密码有误")) {
                 throw new RuntimeException("用户名或者密码错误");
             }
