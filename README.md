@@ -115,8 +115,8 @@
 # 部署
 
 1. 请先在服务器配置好`tessreact`，**非常重要**，安装和配置可以参考[我的博文](https://blog.zimo.wiki/posts/c417f07b/)
-2. 在release中下载打包好的[war包](https://github.com/ZimoLoveShuang/wisedu-unified-login-api/releases/download/v1.0/wisedu-unified-login-api-v1.0.war)，或者自己clone仓库后使用ide编译为`jar`包
-3. `war`包放入`tomcat`等容器中，jar包使用`java -jar xxx.jar`命令执行
+2. 在release中下载打包好的[war包](https://github.com/ZimoLoveShuang/wisedu-unified-login-api/releases/download/v1.0/wisedu-unified-login-api-v1.0.war)，或者[`jar`包](https://github.com/ZimoLoveShuang/wisedu-unified-login-api/releases/download/v1.0/wisedu-unified-login-api-v1.0.jar)
+3. `war`包放入`tomcat`等容器中，jar包使用`java -jar wisedu-unified-login-api-v1.0.jar &`命令执行
 4. enjoy it !!!
 
 # 更新
