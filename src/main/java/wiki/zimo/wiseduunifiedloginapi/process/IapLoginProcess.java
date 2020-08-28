@@ -111,7 +111,10 @@ public class IapLoginProcess {
                 // 识别验证码
                 String code = ocrCaptcha(cookies, captcha_url);
                 params.put("captcha", code);
-                return iapSendLoginData(login_url, headers, cookies, params);
+                Map<String, String> cookies2 = iapSendLoginData(login_url, headers, cookies, params);
+                if (cookies2 != null) {
+                    return cookies2;
+                }
             }
 
             // 执行到这里说明验证码识别结果一直不正确

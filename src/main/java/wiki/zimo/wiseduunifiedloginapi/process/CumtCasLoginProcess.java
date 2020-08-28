@@ -117,7 +117,10 @@ public class CumtCasLoginProcess {
                 String code = ocrCaptcha(cookies, headers, loginEntity.getCaptchaUrl());
 //                System.out.println(code);
                 params.put("captchaResponse", code);
-                return casSendLoginData(loginEntity.getLoginUrl(), cookies, params);
+                Map<String, String> cookies2 = casSendLoginData(loginEntity.getLoginUrl(), cookies, params);
+                if (cookies2 != null) {
+                    return cookies2;
+                }
             }
             // 执行到这里就代表验证码识别尝试已经达到了最大的次数
             throw new RuntimeException("验证码识别错误，请重试");

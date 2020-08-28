@@ -42,14 +42,14 @@ public class CasLoginProcess {
 
         // 解析登陆页
         Document doc = res.parse();
-        System.out.println(doc);
+//        System.out.println(doc);
 
         // 全局cookie
         Map<String, String> cookies = res.cookies();
 
         // 获取登陆表单
         Element form = doc.getElementById("casLoginForm");
-        System.out.println(form);
+//        System.out.println(form);
         if (form == null) {
             throw new RuntimeException("网页中没有找到casLoginForm，请联系开发者！！！");
         }
@@ -143,7 +143,10 @@ public class CasLoginProcess {
                 String code = ocrCaptcha(cookies, headers, loginEntity.getCaptchaUrl());
 //                System.out.println(code);
                 params.put("captchaResponse", code);
-                return casSendLoginData(loginEntity.getLoginUrl(), cookies, params);
+                Map<String, String> cookies2 = casSendLoginData(loginEntity.getLoginUrl(), cookies, params);
+                if (cookies2 != null) {
+                    return cookies2;
+                }
             }
             // 执行到这里就代表验证码识别尝试已经达到了最大的次数
             throw new RuntimeException("验证码识别错误，请重试");
