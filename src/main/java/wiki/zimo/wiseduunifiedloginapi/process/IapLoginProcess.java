@@ -111,44 +111,7 @@ public class IapLoginProcess {
                 // 识别验证码
                 String code = ocrCaptcha(cookies, captcha_url);
                 params.put("captcha", code);
-//                System.out.println(code);
-
-                // 模拟登陆
-                con = Jsoup.connect(login_url).headers(headers).ignoreContentType(true).followRedirects(false).cookies(cookies).data(params).method(Connection.Method.POST);
-                res = con.execute();
-                // 更新cookie
-                cookies.putAll(res.cookies());
-                String body = res.body();
-                // 修复新乡医学院等iap登陆方式可能被多次重定向的问题
-                if (body.contains("307")) {
-                    String location = res.headers().get("Location");
-                    res = Jsoup.connect(location).headers(headers).ignoreContentType(true).followRedirects(true).cookies(cookies).data(params).method(Connection.Method.POST).execute();
-                    // 更新cookies
-                    cookies.putAll(res.cookies());
-                    // 更新body
-                    body = res.body();
-                }
-                // 然后就是正常流程
-                jsonObject = JSON.parseObject(body);
-                String resultCode = jsonObject.getString("resultCode");
-//                System.out.println(body);
-                // 如果验证码不正确，继续尝试
-                if (resultCode.equals("CAPTCHA_NOTMATCH")) {
-                    continue;
-                }
-
-                if (!resultCode.equals("REDIRECT")) {
-                    throw new RuntimeException("用户名或密码错误");
-                }
-
-                // 第一次重定向，手动重定向
-                String url = headers.get("Origin") + jsonObject.getString("url");
-                // 后面会有多次重定向，所以开启自动重定向
-                res = Jsoup.connect(url).cookies(cookies).followRedirects(true).ignoreContentType(true).execute();
-                // 再次更新cookie，防爬策略：每个页面一个cookie
-                cookies.putAll(res.cookies());
-                // 登陆成功
-                return cookies;
+                return iapSendLoginData(login_url, headers, cookies, params);
             }
 
             // 执行到这里说明验证码识别结果一直不正确

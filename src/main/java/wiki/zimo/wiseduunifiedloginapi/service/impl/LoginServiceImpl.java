@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import wiki.zimo.wiseduunifiedloginapi.process.CasLoginProcess;
+import wiki.zimo.wiseduunifiedloginapi.process.CumtCasLoginProcess;
 import wiki.zimo.wiseduunifiedloginapi.process.IapLoginProcess;
 import wiki.zimo.wiseduunifiedloginapi.service.LoginService;
 
@@ -34,6 +35,9 @@ public class LoginServiceImpl implements LoginService {
         // 根据login_url判断类型
         if (login_url.trim().contains("/iap")) {
             IapLoginProcess process = new IapLoginProcess(login_url, params);
+            return process.login();
+        } else if (login_url.trim().contains("authserver.cumt.edu.cn")) {
+            CumtCasLoginProcess process = new CumtCasLoginProcess(login_url, params);
             return process.login();
         } else {
             CasLoginProcess process = new CasLoginProcess(login_url, params);

@@ -15,72 +15,68 @@ import wiki.zimo.wiseduunifiedloginapi.helper.TesseractOCRHelper;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-/**
- * 金智统一cas登陆
- */
-public class CasLoginProcess {
+public class CumtCasLoginProcess {
     private CasLoginEntity loginEntity;
     private Map<String, String> params;
 
-    public CasLoginProcess(String loginUrl, Map<String, String> params) {
+    public CumtCasLoginProcess(String loginUrl, Map<String, String> params) {
         this.loginEntity = new CasLoginEntityBuilder()
                 .loginUrl(loginUrl)
                 .build();
+        loginEntity.setNeedcaptchaUrl("http://authserver.cumt.edu.cn/authserver/checkNeedCaptcha.htl");
+        loginEntity.setCaptchaUrl("http://authserver.cumt.edu.cn/authserver/getCaptcha.htl");
         this.params = params;
     }
 
     public Map<String, String> login() throws Exception {
-        // 请求登陆页
-        Connection con = Jsoup.connect(loginEntity.getLoginUrl()).followRedirects(true);
-        Connection.Response res = con.execute();
 
-        // 解析登陆页
-        Document doc = res.parse();
-        System.out.println(doc);
+        // 构造请求头
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
+        headers.put("Accept-Encoding", "gzip, deflate");
+        headers.put("Accept-Language", "zh-CN,zh;q=0.9");
+        headers.put("Cache-Control", "max-age=0");
+        headers.put("Connection", "keep-alive");
+        headers.put("Host", "authserver.cumt.edu.cn");
+        headers.put("Upgrade-Insecure-Requests", "1");
+        headers.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36");
+
+
+        // 请求登陆页
+        Connection con = Jsoup.connect(loginEntity.getLoginUrl())
+                .followRedirects(true)
+                .headers(headers);
+        Connection.Response res = con.execute();
+//        System.out.println(res.url());
+//        System.out.println(doc);
 
         // 全局cookie
         Map<String, String> cookies = res.cookies();
 
+        // 解析登陆页
+        Document doc = Jsoup.connect(loginEntity.getLoginUrl())
+                .followRedirects(true)
+                .headers(headers)
+                .cookies(cookies)
+                .get();
+
         // 获取登陆表单
-        Element form = doc.getElementById("casLoginForm");
-        System.out.println(form);
+        Element pwdLoginDiv = doc.getElementById("pwdLoginDiv");
+        Element form = pwdLoginDiv.getElementById("loginFromId");
+
         if (form == null) {
-            throw new RuntimeException("网页中没有找到casLoginForm，请联系开发者！！！");
+            throw new RuntimeException("网页中没有找到loginFromId，请联系开发者！！！");
         }
 
         // 处理加密的盐
-        Element saltElement = doc.getElementById("pwdDefaultEncryptSalt");
+        Element saltElement = doc.getElementById("pwdEncryptSalt");
 
         String salt = null;
         if (saltElement != null) {
             salt = saltElement.val();
-        }
-
-        // 网页中可能不存在id为pwdDefaultEncryptSalt的元素中，但提交的密码参数仍然需要加密
-        if (saltElement == null) {
-            Elements scripts = doc.getElementsByTag("script");
-            for (Element script : scripts) {
-                if (script.data().contains("pwdDefaultEncryptSalt")) {
-//                    System.out.println(script.data());
-                    // 用正则表达式匹配盐
-                    String pattern = "\"\\w{16}\"";
-                    Pattern p = Pattern.compile(pattern);
-                    Matcher m = p.matcher(script.data());
-                    if (m.find()) {
-                        String group = m.group();
-                        salt = group.substring(1, group.length() - 1);
-//                        System.out.println(group);
-//                        System.out.println(salt);
-                    }
-                    break;
-                }
-            }
         }
 
 //        System.out.println("盐是 " + salt);
@@ -95,21 +91,6 @@ public class CasLoginProcess {
         // 构造post请求参数
         Map<String, String> params = new HashMap<>();
         for (Element e : inputs) {
-
-            // 填充用户名
-            if (e.attr("name").equals("username")) {
-                e.attr("value", username);
-            }
-
-            // 填充密码
-            if (e.attr("name").equals("password")) {
-                if (salt != null) {
-                    e.attr("value", AESHelper.encryptAES(password, salt));
-                } else {
-                    e.attr("value", password);
-                }
-            }
-
             // 排除空值表单属性
             if (e.attr("name").length() > 0) {
                 // 排除记住我
@@ -120,17 +101,10 @@ public class CasLoginProcess {
             }
         }
 
-//        System.out.println("登陆参数 " + params);
+        params.put("username", username);
+        params.put("password", AESHelper.encryptAES(password, salt));
 
-        // 构造请求头
-        Map<String, String> headers = new HashMap<>();
-        headers.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
-        headers.put("Accept-Encoding", "gzip, deflate");
-        headers.put("Cache-Control", "max-age=0");
-        headers.put("Connection", "keep-alive");
-        headers.put("Host", new URL(loginEntity.getLoginUrl()).getHost());
-        headers.put("Upgrade-Insecure-Requests", "1");
-        headers.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36");
+//        System.out.println("登陆参数 " + params);
 
         // 模拟登陆之前首先请求是否需要验证码接口
         doc = Jsoup.connect(loginEntity.getNeedcaptchaUrl() + "?username=" + username).headers(headers).cookies(cookies).get();
@@ -163,9 +137,30 @@ public class CasLoginProcess {
      * @throws Exception
      */
     private Map<String, String> casSendLoginData(String login_url, Map<String, String> cookies, Map<String, String> params) throws Exception {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
+        headers.put("Accept-Encoding", "gzip, deflate");
+        headers.put("Accept-Language", "zh-CN,zh;q=0.9");
+        headers.put("Cache-Control", "max-age=0");
+        headers.put("Connection", "keep-alive");
+        headers.put("Content-Type", "application/x-www-form-urlencoded");
+        headers.put("Host", "authserver.cumt.edu.cn");
+        headers.put("Origin", "http://authserver.cumt.edu.cn");
+        headers.put("Referer", "http://authserver.cumt.edu.cn/authserver/login?service=https%3A%2F%2Fcumt.cpdaily.com%2Fportal%2Flogin");
+        headers.put("Upgrade-Insecure-Requests", "1");
+        headers.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36");
+
+//        System.out.println("headers " + headers);
+//        System.out.println("cookies " + cookies);
+
         Connection con = Jsoup.connect(login_url);
 //        System.out.println(login_url);
-        Connection.Response login = con.ignoreContentType(true).followRedirects(false).method(Connection.Method.POST).data(params).cookies(cookies).execute();
+        Connection.Response login = con.headers(headers)
+                .followRedirects(false)
+                .method(Connection.Method.POST)
+                .data(params)
+                .cookies(cookies)
+                .execute();
 //        System.out.println(params);
 //        System.out.println(login.statusCode());
         if (login.statusCode() == HttpURLConnection.HTTP_MOVED_TEMP) {
@@ -184,6 +179,7 @@ public class CasLoginProcess {
         } else if (login.statusCode() == HttpURLConnection.HTTP_OK) {
             // 登陆失败
             Document doc = login.parse();
+            System.out.println(doc);
             Element msg = doc.getElementById("msg");
 //            System.out.println(msg);
             if (msg.text().equals("您提供的用户名或者密码有误")) {
@@ -247,3 +243,4 @@ public class CasLoginProcess {
         return true;
     }
 }
+
