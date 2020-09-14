@@ -10,6 +10,7 @@ import wiki.zimo.wiseduunifiedloginapi.builder.IapLoginEntityBuilder;
 import wiki.zimo.wiseduunifiedloginapi.entity.IapLoginEntity;
 import wiki.zimo.wiseduunifiedloginapi.helper.ImageHelper;
 import wiki.zimo.wiseduunifiedloginapi.helper.TesseractOCRHelper;
+import wiki.zimo.wiseduunifiedloginapi.trust.HttpsUrlValidator;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,8 +30,13 @@ public class IapLoginProcess {
     }
 
     public Map<String, String> login() throws Exception {
+
+        // 忽略证书错误
+        HttpsUrlValidator.retrieveResponseFromServer(loginEntity.getLoginUrl());
+
         // 请求登陆页
-        Connection con = Jsoup.connect(loginEntity.getLoginUrl()).followRedirects(true);
+        Connection con = Jsoup.connect(loginEntity.getLoginUrl())
+                .followRedirects(true);
         Connection.Response res = con.execute();
 
         // 构造请求头
@@ -74,7 +80,10 @@ public class IapLoginProcess {
         // 申请It
         String itUrl = loginEntity.getItUrl();
 //        System.out.println(itUrl);
-        Document doc = Jsoup.connect(itUrl).ignoreContentType(true).cookies(cookies).post();
+        Document doc = Jsoup.connect(itUrl)
+                .ignoreContentType(true)
+                .cookies(cookies)
+                .post();
 //        System.out.println(doc);
         JSONObject jsonObject = JSON.parseObject(doc.body().text());
         if (jsonObject.getInteger("code") != 200) {
@@ -99,7 +108,10 @@ public class IapLoginProcess {
 //        System.out.println(needcaptcha_url);
 
         // 模拟登陆之前首先请求是否需要验证码接口
-        doc = Jsoup.connect(needcaptcha_url).cookies(cookies).ignoreContentType(true).get();
+        doc = Jsoup.connect(needcaptcha_url)
+                .cookies(cookies)
+                .ignoreContentType(true)
+                .get();
         Boolean needCaptcha = Boolean.valueOf(JSON.parseObject(doc.body().text()).getString("needCaptcha"));
 //        System.out.println(needCaptcha);
         if (needCaptcha) {
@@ -138,8 +150,15 @@ public class IapLoginProcess {
      * @throws Exception
      */
     private Map<String, String> iapSendLoginData(String login_url, Map<String, String> headers, Map<String, String> cookies, Map<String, String> params) throws Exception {
-        Connection con = Jsoup.connect(login_url).headers(headers).ignoreContentType(true).followRedirects(false).cookies(cookies).data(params).method(Connection.Method.POST);
-        Connection.Response res = con.execute();
+        Connection.Response res = Jsoup.connect(login_url)
+                .headers(headers)
+                .ignoreContentType(true)
+                .followRedirects(false)
+                .cookies(cookies)
+                .data(params)
+                .method(Connection.Method.POST)
+                .execute();
+
         // 更新cookie
         cookies.putAll(res.cookies());
         // 修复新乡医学院等iap登陆方式可能被多次重定向的问题
@@ -148,7 +167,14 @@ public class IapLoginProcess {
         if (body.contains("307")) {
             String location = res.headers().get("Location");
 //                System.out.println(location);
-            res = Jsoup.connect(location).headers(headers).ignoreContentType(true).followRedirects(true).cookies(cookies).data(params).method(Connection.Method.POST).execute();
+            res = Jsoup.connect(location)
+                    .headers(headers)
+                    .ignoreContentType(true)
+                    .followRedirects(true)
+                    .cookies(cookies)
+                    .data(params)
+                    .method(Connection.Method.POST)
+                    .execute();
 //                System.out.println(res.headers());
 //                System.out.println(res.cookies());
 //                System.out.println(res.body());
@@ -168,7 +194,11 @@ public class IapLoginProcess {
         // 第一次重定向，手动重定向
         String url = headers.get("Origin") + jsonObject.getString("url");
         // 后面会有多次重定向，所以开启自动重定向
-        res = Jsoup.connect(url).cookies(cookies).followRedirects(true).ignoreContentType(true).execute();
+        res = Jsoup.connect(url)
+                .cookies(cookies)
+                .followRedirects(true)
+                .ignoreContentType(true)
+                .execute();
         // 再次更新cookie，防爬策略：每个页面一个cookie
         cookies.putAll(res.cookies());
         // 登陆成功
@@ -188,7 +218,10 @@ public class IapLoginProcess {
         while (true) {
             String filePach = System.getProperty("user.dir") + File.separator + System.currentTimeMillis() + ".jpg";
 //            System.out.println(filePach);
-            Connection.Response response = Jsoup.connect(captcha_url).cookies(cookies).ignoreContentType(true).execute();
+            Connection.Response response = Jsoup.connect(captcha_url)
+                    .cookies(cookies)
+                    .ignoreContentType(true)
+                    .execute();
 
             // 五位验证码，背景没有噪点
             ImageHelper.saveImageFile(response.bodyStream(), filePach);

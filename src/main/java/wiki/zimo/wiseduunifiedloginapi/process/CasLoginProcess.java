@@ -11,6 +11,7 @@ import wiki.zimo.wiseduunifiedloginapi.entity.CasLoginEntity;
 import wiki.zimo.wiseduunifiedloginapi.helper.AESHelper;
 import wiki.zimo.wiseduunifiedloginapi.helper.ImageHelper;
 import wiki.zimo.wiseduunifiedloginapi.helper.TesseractOCRHelper;
+import wiki.zimo.wiseduunifiedloginapi.trust.HttpsUrlValidator;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,8 +37,14 @@ public class CasLoginProcess {
     }
 
     public Map<String, String> login() throws Exception {
+
+        // 忽略证书错误
+        HttpsUrlValidator.retrieveResponseFromServer(loginEntity.getLoginUrl());
+
         // 请求登陆页
-        Connection con = Jsoup.connect(loginEntity.getLoginUrl()).followRedirects(true);
+        Connection con = Jsoup.connect(loginEntity.getLoginUrl())
+                .header("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1")
+                .followRedirects(true);
         Connection.Response res = con.execute();
 
         // 解析登陆页
@@ -130,10 +137,13 @@ public class CasLoginProcess {
         headers.put("Connection", "keep-alive");
         headers.put("Host", new URL(loginEntity.getLoginUrl()).getHost());
         headers.put("Upgrade-Insecure-Requests", "1");
-        headers.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36");
+        headers.put("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1");
 
         // 模拟登陆之前首先请求是否需要验证码接口
-        doc = Jsoup.connect(loginEntity.getNeedcaptchaUrl() + "?username=" + username).headers(headers).cookies(cookies).get();
+        doc = Jsoup.connect(loginEntity.getNeedcaptchaUrl() + "?username=" + username)
+                .headers(headers)
+                .cookies(cookies)
+                .get();
         boolean isNeedCaptcha = Boolean.valueOf(doc.body().text());
 //        System.out.println(isNeedCaptcha);
         if (isNeedCaptcha) {
@@ -178,7 +188,11 @@ public class CasLoginProcess {
             // 拿到重定向的地址
             String location = login.header("location");
 //            System.out.println(location);
-            con = Jsoup.connect(location).ignoreContentType(true).followRedirects(true).method(Connection.Method.POST).cookies(cookies);
+            con = Jsoup.connect(location)
+                    .ignoreContentType(true)
+                    .followRedirects(true)
+                    .method(Connection.Method.POST)
+                    .cookies(cookies);
             // 请求，再次更新cookie
             login = con.execute();
             cookies.putAll(login.cookies());
@@ -213,7 +227,10 @@ public class CasLoginProcess {
             String filePach = System.getProperty("user.dir") + File.separator + System.currentTimeMillis() + ".jpg";
 //            System.out.println(filePach);
 //            System.out.println(captcha_url);
-            Connection.Response response = Jsoup.connect(captcha_url).headers(headers).cookies(cookies).ignoreContentType(true).execute();
+            Connection.Response response = Jsoup.connect(captcha_url)
+                    .headers(headers).cookies(cookies)
+                    .ignoreContentType(true)
+                    .execute();
 
             // 四位验证码，背景有噪点
             ImageHelper.saveImageFile(ImageHelper.binaryzation(response.bodyStream()), filePach);

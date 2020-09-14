@@ -11,6 +11,7 @@ import wiki.zimo.wiseduunifiedloginapi.entity.CasLoginEntity;
 import wiki.zimo.wiseduunifiedloginapi.helper.AESHelper;
 import wiki.zimo.wiseduunifiedloginapi.helper.ImageHelper;
 import wiki.zimo.wiseduunifiedloginapi.helper.TesseractOCRHelper;
+import wiki.zimo.wiseduunifiedloginapi.trust.HttpsUrlValidator;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +33,9 @@ public class CumtCasLoginProcess {
     }
 
     public Map<String, String> login() throws Exception {
+
+        // 忽略证书错误
+        HttpsUrlValidator.retrieveResponseFromServer(loginEntity.getLoginUrl());
 
         // 构造请求头
         Map<String, String> headers = new HashMap<>();
@@ -107,7 +111,10 @@ public class CumtCasLoginProcess {
 //        System.out.println("登陆参数 " + params);
 
         // 模拟登陆之前首先请求是否需要验证码接口
-        doc = Jsoup.connect(loginEntity.getNeedcaptchaUrl() + "?username=" + username).headers(headers).cookies(cookies).get();
+        doc = Jsoup.connect(loginEntity.getNeedcaptchaUrl() + "?username=" + username)
+                .headers(headers)
+                .cookies(cookies)
+                .get();
         boolean isNeedCaptcha = Boolean.valueOf(doc.body().text());
 //        System.out.println(isNeedCaptcha);
         if (isNeedCaptcha) {
@@ -173,7 +180,11 @@ public class CumtCasLoginProcess {
             // 拿到重定向的地址
             String location = login.header("location");
 //            System.out.println(location);
-            con = Jsoup.connect(location).ignoreContentType(true).followRedirects(true).method(Connection.Method.POST).cookies(cookies);
+            con = Jsoup.connect(location)
+                    .ignoreContentType(true)
+                    .followRedirects(true)
+                    .method(Connection.Method.POST)
+                    .cookies(cookies);
             // 请求，再次更新cookie
             login = con.execute();
             cookies.putAll(login.cookies());
@@ -209,7 +220,11 @@ public class CumtCasLoginProcess {
             String filePach = System.getProperty("user.dir") + File.separator + System.currentTimeMillis() + ".jpg";
 //            System.out.println(filePach);
 //            System.out.println(captcha_url);
-            Connection.Response response = Jsoup.connect(captcha_url).headers(headers).cookies(cookies).ignoreContentType(true).execute();
+            Connection.Response response = Jsoup.connect(captcha_url)
+                    .headers(headers)
+                    .cookies(cookies)
+                    .ignoreContentType(true)
+                    .execute();
 
             // 四位验证码，背景有噪点
             ImageHelper.saveImageFile(ImageHelper.binaryzation(response.bodyStream()), filePach);
