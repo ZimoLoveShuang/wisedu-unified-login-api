@@ -3,6 +3,7 @@ package wiki.zimo.wiseduunifiedloginapi.process;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import net.sourceforge.tess4j.TesseractException;
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -79,10 +80,15 @@ public class IapLoginProcess {
 
         // 申请It
         String itUrl = loginEntity.getItUrl();
+        Map<String, String> itData = new HashMap<>();
+        itData.put("lt", res.url().getQuery().substring("_2lBepC=".length()));
+//        System.out.println(itData);
 //        System.out.println(itUrl);
         Document doc = Jsoup.connect(itUrl)
                 .ignoreContentType(true)
+                .header("Content-Type", "application/x-www-form-urlencoded")
                 .cookies(cookies)
+                .data(itData)
                 .post();
 //        System.out.println(doc);
         JSONObject jsonObject = JSON.parseObject(doc.body().text());
@@ -91,6 +97,9 @@ public class IapLoginProcess {
         }
         JSONObject result = jsonObject.getJSONObject("result");
         String it = result.getString("_lt");
+        if (StringUtils.isEmpty(it)) {
+            throw new RuntimeException("申请It失败");
+        }
         params.put("lt", it);
 
         // 拿到encryptSalt
@@ -192,7 +201,7 @@ public class IapLoginProcess {
             throw new RuntimeException("用户名或密码错误");
         }
         // 第一次重定向，手动重定向
-        String url = headers.get("Origin") + jsonObject.getString("url");
+        String url = jsonObject.getString("url");
         // 后面会有多次重定向，所以开启自动重定向
         res = Jsoup.connect(url)
                 .cookies(cookies)
