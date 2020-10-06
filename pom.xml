@@ -13,7 +13,7 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>wisedu-unified-login-api</name>
     <packaging>war</packaging>
-<!--    <packaging>jar</packaging>-->
+    <!--    <packaging>jar</packaging>-->
     <description>wisedu-unified-login-api project for Spring Boot</description>
 
     <properties>
@@ -71,6 +71,13 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.10</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/commons-codec/commons-codec -->
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.15</version>
         </dependency>
 
         <dependency>
