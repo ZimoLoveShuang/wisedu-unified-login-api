@@ -192,6 +192,7 @@ public class CasLoginProcess {
                     .ignoreContentType(true)
                     .followRedirects(true)
                     .method(Connection.Method.POST)
+                    .header("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1")
                     .cookies(cookies);
             // 请求，再次更新cookie
             login = con.execute();
@@ -203,8 +204,8 @@ public class CasLoginProcess {
             Document doc = login.parse();
             Element msg = doc.getElementById("msg");
 //            System.out.println(msg);
-            if (msg.text().equals("您提供的用户名或者密码有误")) {
-                throw new RuntimeException("用户名或者密码错误");
+            if (!msg.text().equals("无效的验证码")) {
+                throw new RuntimeException(msg.text());
             }
         } else {
             // 服务器可能出错

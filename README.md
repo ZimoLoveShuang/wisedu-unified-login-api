@@ -115,12 +115,13 @@
 # 部署
 
 1. 请先在服务器配置好`tessreact`，**非常重要**，安装和配置可以参考[我的博文](https://blog.zimo.wiki/posts/c417f07b/)
-2. 在release中下载打包好的[war包](https://github.com/ZimoLoveShuang/wisedu-unified-login-api/releases/download/v1.0/wisedu-unified-login-api-v1.0.war)，或者[`jar`包](https://github.com/ZimoLoveShuang/wisedu-unified-login-api/releases/download/v1.0/wisedu-unified-login-api-v1.0.jar)
+2. 在[release](https://github.com/ZimoLoveShuang/wisedu-unified-login-api/releases)中下载打包好的`war`包，或者`jar`包
 3. `war`包放入`tomcat`等容器中，jar包使用`java -jar wisedu-unified-login-api-v1.0.jar &`命令执行
 4. enjoy it !!!
 
 # 更新
 
+- 2020-11-09 解决福建农林大学认证服务器出现的500错误 v1.0.9
 - 2020-10-05 适配昆明学院的登陆过程 v1.0.8
 - 2020-09-26 支持再次更新后的CLOUD方式认证接口 v1.0.7
 - 2020-09-14 适配安徽建筑大学的登陆过程 v1.0.6
