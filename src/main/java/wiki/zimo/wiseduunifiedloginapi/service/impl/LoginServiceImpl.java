@@ -43,6 +43,9 @@ public class LoginServiceImpl implements LoginService {
         } else if (login_url.trim().contains("ehall.kmu.edu.cn")) {
             KmuCasLoginProcess process = new KmuCasLoginProcess(login_url, params);
             return process.login();
+        } else if (login_url.trim().contains("cas.whpu.edu.cn")) {
+            WhpuCasLoginProcess process = new WhpuCasLoginProcess(login_url, params);
+            return process.login();
         } else {
             CasLoginProcess process = new CasLoginProcess(login_url, params);
             return process.login();
