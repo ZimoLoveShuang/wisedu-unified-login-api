@@ -118,9 +118,11 @@
 2. 在[release](https://github.com/ZimoLoveShuang/wisedu-unified-login-api/releases)中下载打包好的`war`包，或者`jar`包
 3. `war`包放入`tomcat`等容器中，jar包使用`java -jar wisedu-unified-login-api-v1.0.jar &`命令执行
 4. enjoy it !!!
+5. [点此直达对新手小白更加友好的部署教程](https://blog.zimo.wiki/posts/6c809f81/)
 
 # 更新
 
+- 2020-11-17 适配山东城市建设职业学院的登陆过程 v1.0.11
 - 2020-11-10 适配武汉轻工大学更新后的登陆过程 v1.0.10
 - 2020-11-09 解决福建农林大学认证服务器出现的500错误 v1.0.9
 - 2020-10-05 适配昆明学院的登陆过程 v1.0.8

@@ -18,7 +18,6 @@ import java.security.spec.X509EncodedKeySpec;
 public class RSAHelper {
     private static final String CIPHER_NAME = "RSA";
     private static final String CHARSETNAME = "UTF-8";
-    private static final String PUBLICKEY = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCxKVG9heYiIhkJ1phCgbrFgUnhVFb96uG1pfDZ8OxskJo1gc6c1LXrr2ALZt9Remllvmoak36drc/SjkibHAWJFvxiZfmBKzpYgBHHKTgsZgIMSGxJEL77ELEccOxkqC4lIMqjSEirOcqUXlx8MmyklDtwbhd0ZJ5TFlBgvFIqhwIDAQAB";
 
     /**
      * 安徽建筑大学的加密过程
@@ -28,6 +27,7 @@ public class RSAHelper {
      * @throws Exception
      */
     public static String encrypt(String data) throws Exception {
+        final String PUBLICKEY = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCxKVG9heYiIhkJ1phCgbrFgUnhVFb96uG1pfDZ8OxskJo1gc6c1LXrr2ALZt9Remllvmoak36drc/SjkibHAWJFvxiZfmBKzpYgBHHKTgsZgIMSGxJEL77ELEccOxkqC4lIMqjSEirOcqUXlx8MmyklDtwbhd0ZJ5TFlBgvFIqhwIDAQAB";
         byte[] decode = Base64.decodeBase64(PUBLICKEY.getBytes(CHARSETNAME));
         RSAPublicKey pubKey = (RSAPublicKey) KeyFactory.getInstance(CIPHER_NAME).generatePublic(new X509EncodedKeySpec(decode));
         Cipher cipher = Cipher.getInstance(CIPHER_NAME);
@@ -95,15 +95,13 @@ public class RSAHelper {
         cipher.init(Cipher.DECRYPT_MODE, key);
         byte[] decodeHex = Hex.decodeHex(data);
         byte[] doFinal = cipher.doFinal(decodeHex);
-        return new StringBuffer(new String(doFinal)).reverse().toString();
+        return new StringBuffer(new String(doFinal)).reverse().toString().replaceAll("%20", "+");
     }
 
     public static void main(String[] args) throws Exception {
 //        System.out.println(encrypt("123456"));
         String data = "123456";
         String e = encrypt3(data);
-        System.out.println(e);
-        e = "3a4ee3990a6ab88388eff6d262a1675aa6a72b550f254fb9d77d926de788e8cdefd087a618ee97e413d7e17a874e37aa8255347cd9dfcbaf3f966939751f9e77931597bb42eb90489964fb982f0f2172983f8e86d3103aaaece21436bb456e15165c3d161f160ce2679eba9dd0a2d7591fc8b3a0d6bfcbe21b63606133ffb6f4";
         System.out.println(e);
         System.out.println(decrypt3(e));
     }

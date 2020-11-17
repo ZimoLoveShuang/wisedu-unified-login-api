@@ -3,11 +3,18 @@ package wiki.zimo.wiseduunifiedloginapi.helper;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Base64;
 
 public class ImageHelper {
+    public static BufferedImage base64ToBufferedImage(String base64) throws IOException {
+        byte[] decode = Base64.getMimeDecoder().decode(base64.substring("data:image/png;base64,".length()));
+        ByteArrayInputStream bais = new ByteArrayInputStream(decode);
+        return ImageIO.read(bais);
+    }
 
     public static void saveImageFile(BufferedImage image, String fileName) throws IOException {
         ImageIO.write(image, "jpg", new File(fileName));
