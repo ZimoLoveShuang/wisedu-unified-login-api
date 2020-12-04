@@ -47,7 +47,7 @@ public class LoginServiceImpl implements LoginService {
             WhpuCasLoginProcess process = new WhpuCasLoginProcess(login_url, params);
             return process.login();
         } else if (login_url.trim().contains("ehall.sduc.edu.cn")) {
-            SducLoginProcess process = new SducLoginProcess(login_url, params);
+            SducCasLoginProcess process = new SducCasLoginProcess(login_url, params);
             return process.login();
         } else {
             CasLoginProcess process = new CasLoginProcess(login_url, params);

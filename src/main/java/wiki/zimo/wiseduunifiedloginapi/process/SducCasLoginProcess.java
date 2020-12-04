@@ -20,12 +20,12 @@ import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SducLoginProcess {
+public class SducCasLoginProcess {
 
     private CasLoginEntity loginEntity;
     private Map<String, String> params;
 
-    public SducLoginProcess(String loginUrl, Map<String, String> params) {
+    public SducCasLoginProcess(String loginUrl, Map<String, String> params) {
         this.loginEntity = new CasLoginEntityBuilder()
                 .loginUrl(loginUrl)
                 .build();

@@ -6,6 +6,7 @@ import org.apache.tomcat.util.codec.binary.Base64;
 import javax.crypto.Cipher;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
@@ -62,6 +63,11 @@ public class RSAHelper {
                 .replaceAll("\\+", "%20");
     }
 
+    private static String decodeURIComponent(String uri) throws UnsupportedEncodingException {
+        return URLDecoder.decode(uri, CHARSETNAME)
+                .replaceAll("%20", "\\+");
+    }
+
     /**
      * 山东城市建设职业学院的加密过程
      *
@@ -95,7 +101,7 @@ public class RSAHelper {
         cipher.init(Cipher.DECRYPT_MODE, key);
         byte[] decodeHex = Hex.decodeHex(data);
         byte[] doFinal = cipher.doFinal(decodeHex);
-        return new StringBuffer(new String(doFinal)).reverse().toString().replaceAll("%20", "+");
+        return decodeURIComponent(new StringBuffer(new String(doFinal)).reverse().toString());
     }
 
     public static void main(String[] args) throws Exception {
