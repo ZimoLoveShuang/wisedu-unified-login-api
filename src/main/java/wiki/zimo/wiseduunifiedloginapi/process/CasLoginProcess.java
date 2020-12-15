@@ -148,7 +148,7 @@ public class CasLoginProcess {
 //        System.out.println(isNeedCaptcha);
         if (isNeedCaptcha) {
             // 识别验证码后模拟登陆，最多尝试20次
-            int time = 20;
+            int time = TesseractOCRHelper.MAX_TRY_TIMES;
             while (time-- > 0) {
                 String code = ocrCaptcha(cookies, headers, loginEntity.getCaptchaUrl());
 //                System.out.println(code);

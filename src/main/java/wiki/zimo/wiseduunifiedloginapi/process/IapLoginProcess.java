@@ -125,7 +125,7 @@ public class IapLoginProcess {
 //        System.out.println(needCaptcha);
         if (needCaptcha) {
             // 验证码处理，最多尝试20次
-            int time = 20;
+            int time = TesseractOCRHelper.MAX_TRY_TIMES;
             while (time-- > 0) {
                 String captcha_url = loginEntity.getCaptchaUrl() + "?ltId=" + it;
 //                System.out.println(captcha_url);

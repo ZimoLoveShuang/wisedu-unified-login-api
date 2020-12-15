@@ -120,7 +120,7 @@ public class WhpuCasLoginProcess {
 //        System.out.println(isNeedCaptcha);
         if (isNeedCaptcha) {
             // 识别验证码后模拟登陆，最多尝试20次
-            int time = 20;
+            int time = TesseractOCRHelper.MAX_TRY_TIMES;
             while (time-- > 0) {
                 String code = ocrCaptcha(cookies, headers, loginEntity.getCaptchaUrl());
 //                System.out.println(code);
@@ -195,8 +195,8 @@ public class WhpuCasLoginProcess {
             System.out.println(doc);
             Element msg = doc.getElementById("msg");
 //            System.out.println(msg);
-            if (msg.text().equals("您提供的用户名或者密码有误")) {
-                throw new RuntimeException("用户名或者密码错误");
+            if (!msg.text().equals("验证码错误")) {
+                throw new RuntimeException(msg.text());
             }
         } else {
             // 服务器可能出错

@@ -106,7 +106,7 @@ public class AhjzuCasLoginProcess {
 //        System.out.println(isNeedCaptcha);
         if (isNeedCaptcha) {
             // 识别验证码后模拟登陆，最多尝试20次
-            int time = 20;
+            int time = TesseractOCRHelper.MAX_TRY_TIMES;
             while (time-- > 0) {
                 String code = ocrCaptcha(cookies, headers, loginEntity.getCaptchaUrl());
 //                System.out.println(code);
@@ -166,8 +166,8 @@ public class AhjzuCasLoginProcess {
             Document doc = login.parse();
             Element msg = doc.getElementsByClass("err").get(0);
 //            System.out.println(msg);
-            if (msg.text().equals("用户名或密码输入错误")) {
-                throw new RuntimeException("用户名或者密码错误");
+            if (!msg.text().equals("无效的验证码")) {
+                throw new RuntimeException(msg.text());
             }
         } else {
             // 服务器可能出错

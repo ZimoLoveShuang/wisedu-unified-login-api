@@ -7,6 +7,8 @@ import net.sourceforge.tess4j.TesseractException;
 import java.io.File;
 
 public class TesseractOCRHelper {
+    public static final int MAX_TRY_TIMES = 20;
+
     public static String doOcr(String path) throws TesseractException {
         ITesseract instance = new Tesseract();
         String result = instance.doOCR(new File(path));

@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.util.Base64;
 
 public class ImageHelper {
+
     public static BufferedImage base64ToBufferedImage(String base64) throws IOException {
         byte[] decode = Base64.getMimeDecoder().decode(base64.substring("data:image/png;base64,".length()));
         ByteArrayInputStream bais = new ByteArrayInputStream(decode);
@@ -28,6 +29,31 @@ public class ImageHelper {
     public static BufferedImage binaryzation(InputStream inputStream) throws IOException {
         BufferedImage img = ImageIO.read(inputStream);
         return binaryzation(img);
+    }
+
+    public static BufferedImage removeBlack(InputStream inputStream) throws IOException {
+        BufferedImage img = ImageIO.read(inputStream);
+        return removeBlack(img);
+    }
+
+    public static BufferedImage removeBlack(BufferedImage image) {
+        BufferedImage img = image;
+        int black = 24;
+        int width = img.getWidth();
+        int height = img.getHeight();
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                int p = img.getRGB(x, y);
+                int a = (p >> 24) & 0xff;
+                int r = (p >> 16) & 0xff;
+                int g = (p >> 8) & 0xff;
+                int b = p & 0xff;
+                if (r <= black && g <= black && b <= black) {
+                    img.setRGB(x, y, Color.WHITE.getRGB());
+                }
+            }
+        }
+        return img;
     }
 
     public static BufferedImage binaryzation(BufferedImage image) {
