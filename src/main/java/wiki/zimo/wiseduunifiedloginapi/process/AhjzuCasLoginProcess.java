@@ -166,7 +166,7 @@ public class AhjzuCasLoginProcess {
             Document doc = login.parse();
             Element msg = doc.getElementsByClass("err").get(0);
 //            System.out.println(msg);
-            if (!msg.text().equals("无效的验证码")) {
+            if (!msg.text().equals("验证码不正确")) {
                 throw new RuntimeException(msg.text());
             }
         } else {
