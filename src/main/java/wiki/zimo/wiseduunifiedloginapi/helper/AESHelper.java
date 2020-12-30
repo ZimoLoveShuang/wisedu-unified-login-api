@@ -1,5 +1,7 @@
 package wiki.zimo.wiseduunifiedloginapi.helper;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -7,13 +9,15 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.UnsupportedEncodingException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
 import java.util.Base64;
 import java.util.Random;
 
 public class AESHelper {
+
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+    }
 
     /**
      * 金智教务系统的加密实现 Java
@@ -147,11 +151,30 @@ public class AESHelper {
         return buffer.toString();
     }
 
-    /*public static void main(String[] args) throws Exception {
-        String key = "7RUJ5oYZWpq02evh";
-        String data = "abcd123456";
-        String s = encryptAES(data, key);
+    public static void main(String[] args) throws Exception {
+        String key = "yvri8lzohm72ub4t";
+        String data = "abcd1234";
+        String s = encryptAES2(data, key);
         System.out.println(s);
-        System.out.println(decryptAES(s, key, randomString(RANDOM_IV_LENGTH)));
-    }*/
+        System.out.println(decryptAES2(s, key));
+    }
+
+
+    public static String encryptAES2(String data, String key) throws NoSuchPaddingException, NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, NoSuchProviderException {
+        Cipher cipher = Cipher.getInstance("AES/ECB/PKCS7Padding", "BC");
+        SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes(CHARSETNAME), AES);
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+        byte[] doFinal = cipher.doFinal(data.getBytes(CHARSETNAME));
+        return Base64Encrypt(doFinal);
+    }
+
+    public static String decryptAES2(String data, String key) throws NoSuchPaddingException, NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, NoSuchProviderException {
+        Cipher cipher = Cipher.getInstance("AES/ECB/PKCS7Padding", "BC");
+        SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes(CHARSETNAME), AES);
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+        byte[] base64Decrypt = Base64Decrypt(data);
+        byte[] doFinal = cipher.doFinal(base64Decrypt);
+        return new String(doFinal, CHARSETNAME);
+    }
+
 }

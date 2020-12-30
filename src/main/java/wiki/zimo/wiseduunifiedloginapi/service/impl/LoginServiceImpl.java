@@ -58,6 +58,9 @@ public class LoginServiceImpl implements LoginService {
         } else if (login_url.trim().contains("ehall.hfnu.edu.cn")) {
             HfnuCasLoginProcess process = new HfnuCasLoginProcess(login_url, params);
             return process.login();
+        } else if (login_url.trim().contains("uth.hfut.edu.cn")) {
+            HfutCasLoginProcess process = new HfutCasLoginProcess(login_url, params);
+            return process.login();
         } else {
             CasLoginProcess process = new CasLoginProcess(login_url, params);
             return process.login();
