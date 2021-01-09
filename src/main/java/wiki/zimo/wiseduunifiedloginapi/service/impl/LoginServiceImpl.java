@@ -34,31 +34,31 @@ public class LoginServiceImpl implements LoginService {
         if (login_url.trim().contains("/iap")) {
             IapLoginProcess process = new IapLoginProcess(login_url, params);
             return process.login();
-        } else if (login_url.trim().contains("authserver.cumt.edu.cn")) {
+        } else if (login_url.trim().contains("cumt.edu.cn")) {
             CumtCasLoginProcess process = new CumtCasLoginProcess(login_url, params);
             return process.login();
-        } else if (login_url.trim().contains("ids.henu.edu.cn")) {
+        } else if (login_url.trim().contains("henu.edu.cn")) {
             HenuCasLoginProcess process = new HenuCasLoginProcess(login_url, params);
             return process.login();
-        } else if (login_url.trim().contains("ehall.ahjzu.edu.cn")) {
+        } else if (login_url.trim().contains("ahjzu.edu.cn")) {
             AhjzuCasLoginProcess process = new AhjzuCasLoginProcess(login_url, params);
             return process.login();
-        } else if (login_url.trim().contains("ehall.kmu.edu.cn")) {
+        } else if (login_url.trim().contains("kmu.edu.cn")) {
             KmuCasLoginProcess process = new KmuCasLoginProcess(login_url, params);
             return process.login();
-        } else if (login_url.trim().contains("cas.whpu.edu.cn")) {
+        } else if (login_url.trim().contains("whpu.edu.cn")) {
             WhpuCasLoginProcess process = new WhpuCasLoginProcess(login_url, params);
             return process.login();
-        } else if (login_url.trim().contains("ehall.sduc.edu.cn")) {
+        } else if (login_url.trim().contains("sduc.edu.cn")) {
             SducCasLoginProcess process = new SducCasLoginProcess(login_url, params);
             return process.login();
-        } else if (login_url.trim().contains("jwgl.cuit.edu.cn")) {
+        } else if (login_url.trim().contains("cuit.edu.cn")) {
             CuitCasLoginProcess process = new CuitCasLoginProcess(login_url, params);
             return process.login();
-        } else if (login_url.trim().contains("ehall.hfnu.edu.cn")) {
+        } else if (login_url.trim().contains("hfnu.edu.cn")) {
             HfnuCasLoginProcess process = new HfnuCasLoginProcess(login_url, params);
             return process.login();
-        } else if (login_url.trim().contains("uth.hfut.edu.cn")) {
+        } else if (login_url.trim().contains("hfut.edu.cn")) {
             HfutCasLoginProcess process = new HfutCasLoginProcess(login_url, params);
             return process.login();
         } else {

@@ -160,6 +160,20 @@ public class AESHelper {
     }
 
 
+    /**
+     * 合肥工业大学等启用了辅导猫的登陆加密过程，其实还有个特殊字符的编码过程，暂时先这么写吧
+     *
+     * @param data
+     * @param key
+     * @return
+     * @throws NoSuchPaddingException
+     * @throws NoSuchAlgorithmException
+     * @throws UnsupportedEncodingException
+     * @throws InvalidKeyException
+     * @throws BadPaddingException
+     * @throws IllegalBlockSizeException
+     * @throws NoSuchProviderException
+     */
     public static String encryptAES2(String data, String key) throws NoSuchPaddingException, NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, NoSuchProviderException {
         Cipher cipher = Cipher.getInstance("AES/ECB/PKCS7Padding", "BC");
         SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes(CHARSETNAME), AES);
@@ -168,6 +182,20 @@ public class AESHelper {
         return Base64Encrypt(doFinal);
     }
 
+    /**
+     * 合肥工业大学等启用了辅导猫的登陆解密过程
+     *
+     * @param data
+     * @param key
+     * @return
+     * @throws NoSuchPaddingException
+     * @throws NoSuchAlgorithmException
+     * @throws UnsupportedEncodingException
+     * @throws InvalidKeyException
+     * @throws BadPaddingException
+     * @throws IllegalBlockSizeException
+     * @throws NoSuchProviderException
+     */
     public static String decryptAES2(String data, String key) throws NoSuchPaddingException, NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, NoSuchProviderException {
         Cipher cipher = Cipher.getInstance("AES/ECB/PKCS7Padding", "BC");
         SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes(CHARSETNAME), AES);

@@ -12,8 +12,8 @@
     <artifactId>wisedu-unified-login-api</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>wisedu-unified-login-api</name>
-    <!--    <packaging>war</packaging>-->
-    <packaging>jar</packaging>
+    <packaging>war</packaging>
+    <!--    <packaging>jar</packaging>-->
     <description>wisedu-unified-login-api project for Spring Boot</description>
 
     <properties>

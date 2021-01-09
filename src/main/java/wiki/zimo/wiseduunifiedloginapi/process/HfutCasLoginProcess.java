@@ -71,7 +71,7 @@ public class HfutCasLoginProcess {
 
         boolean isNeedCaptcha = Boolean.valueOf(res.parse().body().text());
         if (isNeedCaptcha) {
-            // 识别验证码后模拟登陆，最多尝试20次
+            // 识别验证码后模拟登陆，最多尝试20次，验证码其实根本不需要，机制不改永远执行不到这里
             int time = TesseractOCRHelper.MAX_TRY_TIMES;
             while (time-- > 0) {
                 String code = ocrCaptcha(cookies, headers, loginEntity.getCaptchaUrl());
@@ -104,6 +104,7 @@ public class HfutCasLoginProcess {
 //        System.out.println(login_url);
         Connection.Response login = con.ignoreContentType(true)
                 .followRedirects(false)
+                .ignoreHttpErrors(true)
                 .method(Connection.Method.POST)
                 .data(params)
                 .cookies(cookies)
@@ -136,6 +137,8 @@ public class HfutCasLoginProcess {
             if (!msg.text().equals("验证码错误")) {
                 throw new RuntimeException(msg.text());
             }
+        } else if (login.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
+            throw new RuntimeException("用户名或密码错误");
         } else {
             // 服务器可能出错
             throw new RuntimeException("教务系统服务器可能出错了，Http状态码是：" + login.statusCode());
