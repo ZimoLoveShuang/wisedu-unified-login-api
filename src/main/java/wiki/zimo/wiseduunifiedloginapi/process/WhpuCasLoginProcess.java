@@ -19,7 +19,9 @@ import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.Map;
 
-
+/**
+ * 武汉轻工大学认证
+ */
 public class WhpuCasLoginProcess {
     private CasLoginEntity loginEntity;
     private Map<String, String> params;

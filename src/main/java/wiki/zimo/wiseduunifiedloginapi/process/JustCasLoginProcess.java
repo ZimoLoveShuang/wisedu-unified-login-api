@@ -14,6 +14,9 @@ import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 江苏科技大学认证
+ */
 public class JustCasLoginProcess {
     private CasLoginEntity loginEntity;
     private Map<String, String> params;

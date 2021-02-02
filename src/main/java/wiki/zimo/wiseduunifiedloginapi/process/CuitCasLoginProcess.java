@@ -18,6 +18,9 @@ import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 成都信息工程大学认证
+ */
 public class CuitCasLoginProcess {
     private CasLoginEntity loginEntity;
     private Map<String, String> params;

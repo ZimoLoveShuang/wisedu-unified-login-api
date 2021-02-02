@@ -20,6 +20,9 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 昆明学院认证
+ */
 public class KmuCasLoginProcess {
     private CasLoginEntity loginEntity;
     private Map<String, String> params;

@@ -19,6 +19,9 @@ import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 河南大学认证
+ */
 public class HenuCasLoginProcess {
     private CasLoginEntity loginEntity;
     private Map<String, String> params;

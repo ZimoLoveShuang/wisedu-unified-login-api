@@ -20,6 +20,9 @@ import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 山东城市建设职业学院认证
+ */
 public class SducCasLoginProcess {
 
     private CasLoginEntity loginEntity;

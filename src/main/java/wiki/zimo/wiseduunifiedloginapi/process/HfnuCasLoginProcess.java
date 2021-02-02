@@ -11,6 +11,9 @@ import wiki.zimo.wiseduunifiedloginapi.entity.CasLoginEntity;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 合肥师范学院认证
+ */
 public class HfnuCasLoginProcess {
     private CasLoginEntity loginEntity;
     private Map<String, String> params;

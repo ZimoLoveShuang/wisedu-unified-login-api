@@ -23,7 +23,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * 金智统一cas登陆
+ * NOTCLOUD认证
  */
 public class CasLoginProcess {
     private CasLoginEntity loginEntity;

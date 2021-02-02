@@ -104,11 +104,31 @@ public class RSAHelper {
         return decodeURIComponent(new StringBuffer(new String(doFinal)).reverse().toString());
     }
 
+    /**
+     * 淮阴师范学院的加密过程
+     *
+     * @param data
+     * @return
+     * @throws Exception
+     */
+    public static String encrypt4(String data) throws Exception {
+        data = encodeURIComponent(data);
+        final String CIPHER_NOPADDING = "RSA/ECB/NoPadding";
+        final String MODULUS = "00852f8538afcddd152ddb550fe27f6af786fdddfbf3e9624628dfc91a4cb120257e38ba030300364bd706049519c9b5cd4b8600d688fea694c528c65156f273c413cb6271abd88dc067c5711db624d384a303d6ac7e0a322779683aff064fcbdc9600ea5bd46c89348e550575cbc470e78ef73269a0a7f3e4cd17cdc998fc9589";
+        final String EXPONENT = "010001";
+        Cipher cipher = Cipher.getInstance(CIPHER_NOPADDING);
+        RSAPublicKeySpec keySpec = new RSAPublicKeySpec(new BigInteger(MODULUS, 16), new BigInteger(EXPONENT, 16));
+        PublicKey key = KeyFactory.getInstance(CIPHER_NAME).generatePublic(keySpec);
+        cipher.init(Cipher.ENCRYPT_MODE, key);
+        byte[] doFinal = cipher.doFinal(new StringBuffer(data).reverse().toString().getBytes(CHARSETNAME));
+        char[] hex = Hex.encodeHex(doFinal);
+        return new String(hex);
+    }
+
     public static void main(String[] args) throws Exception {
 //        System.out.println(encrypt("123456"));
         String data = "123456";
-        String e = encrypt3(data);
+        String e = encrypt4(data);
         System.out.println(e);
-        System.out.println(decrypt3(e));
     }
 }

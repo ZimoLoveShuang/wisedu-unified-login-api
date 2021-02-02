@@ -19,6 +19,9 @@ import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 中国矿业大学认证
+ */
 public class CumtCasLoginProcess {
     private CasLoginEntity loginEntity;
     private Map<String, String> params;

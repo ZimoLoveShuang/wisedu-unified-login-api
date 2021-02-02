@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 金智统一iap登陆
+ * CLOUD认证
  */
 public class IapLoginProcess {
     private IapLoginEntity loginEntity;

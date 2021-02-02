@@ -10,6 +10,7 @@ import wiki.zimo.wiseduunifiedloginapi.entity.CasLoginEntity;
 import wiki.zimo.wiseduunifiedloginapi.helper.AESHelper;
 import wiki.zimo.wiseduunifiedloginapi.helper.ImageHelper;
 import wiki.zimo.wiseduunifiedloginapi.helper.TesseractOCRHelper;
+import wiki.zimo.wiseduunifiedloginapi.trust.HttpsUrlValidator;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,6 +18,9 @@ import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 合肥工业大学认证
+ */
 public class HfutCasLoginProcess {
     private CasLoginEntity loginEntity;
     private Map<String, String> params;
@@ -31,6 +35,9 @@ public class HfutCasLoginProcess {
     }
 
     public Map<String, String> login() throws Exception {
+        // 忽略证书错误
+        HttpsUrlValidator.retrieveResponseFromServer(loginEntity.getLoginUrl());
+
         Map<String, String> headers = new HashMap<>();
         headers.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
         headers.put("Accept-Encoding", "gzip, deflate");
