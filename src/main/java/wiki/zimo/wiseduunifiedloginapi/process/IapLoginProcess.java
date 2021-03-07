@@ -172,10 +172,12 @@ public class IapLoginProcess {
         cookies.putAll(res.cookies());
         // 修复新乡医学院等iap登陆方式可能被多次重定向的问题
         String body = res.body();
-//            System.out.println(res.headers());
-        if (body.contains("307")) {
+//        System.out.println(res.headers());
+//        System.out.println(res.statusCode());
+//        System.out.println(body);
+        if (res.statusCode() == 307) {
             String location = res.headers().get("Location");
-//                System.out.println(location);
+//            System.out.println(location);
             res = Jsoup.connect(location)
                     .headers(headers)
                     .ignoreContentType(true)
@@ -184,9 +186,9 @@ public class IapLoginProcess {
                     .data(params)
                     .method(Connection.Method.POST)
                     .execute();
-//                System.out.println(res.headers());
-//                System.out.println(res.cookies());
-//                System.out.println(res.body());
+//            System.out.println(res.headers());
+//            System.out.println(res.cookies());
+//            System.out.println(res.body());
             // 更新cookies
             cookies.putAll(res.cookies());
             // 更新body
@@ -223,7 +225,8 @@ public class IapLoginProcess {
      * @throws IOException
      * @throws TesseractException
      */
-    private String ocrCaptcha(Map<String, String> cookies, String captcha_url) throws IOException, TesseractException {
+    private String ocrCaptcha(Map<String, String> cookies, String captcha_url) throws
+            IOException, TesseractException {
         while (true) {
             String filePach = System.getProperty("user.dir") + File.separator + System.currentTimeMillis() + ".jpg";
 //            System.out.println(filePach);
