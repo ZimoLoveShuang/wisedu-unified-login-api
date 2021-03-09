@@ -191,7 +191,8 @@ public class CasLoginProcess {
             con = Jsoup.connect(location)
                     .ignoreContentType(true)
                     .followRedirects(true)
-                    .method(Connection.Method.POST)
+                    .ignoreHttpErrors(true)
+                    .method(Connection.Method.GET)
                     .header("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1")
                     .cookies(cookies);
             // 请求，再次更新cookie
