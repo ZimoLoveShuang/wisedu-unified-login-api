@@ -52,6 +52,13 @@
             <artifactId>jsoup</artifactId>
             <version>1.13.1</version>
         </dependency>
+             
+        <!-- https://mvnrepository.com/artifact/net.jodah/expiringmap -->
+        <dependency>
+            <groupId>net.jodah</groupId>
+            <artifactId>expiringmap</artifactId>
+            <version>0.5.9</version>
+        </dependency>
 
         <!-- https://mvnrepository.com/artifact/com.alibaba/fastjson -->
         <dependency>
