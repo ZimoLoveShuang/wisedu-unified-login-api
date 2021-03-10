@@ -11,7 +11,7 @@ import java.net.URL;
 
 public class HttpsUrlValidator {
 
-    static HostnameVerifier hv = new HostnameVerifier() {
+    public static HostnameVerifier hv = new HostnameVerifier() {
         public boolean verify(String urlHostName, SSLSession session) {
             System.out.println("Warning: URL Host: " + urlHostName + " vs. "
                     + session.getPeerHost());
