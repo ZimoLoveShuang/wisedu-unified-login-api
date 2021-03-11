@@ -2,6 +2,7 @@ package wiki.zimo.wiseduunifiedloginapi.process;
 
 import net.sourceforge.tess4j.TesseractException;
 import org.jsoup.Connection;
+import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -183,20 +184,36 @@ public class CasLoginProcess {
 //        System.out.println(login.statusCode());
         if (login.statusCode() == HttpURLConnection.HTTP_MOVED_TEMP) {
             // 重定向代表登陆成功
-            // 更新cookie
-            cookies.putAll(login.cookies());
-            // 拿到重定向的地址
-            String location = login.header("location");
-//            System.out.println(location);
-            con = Jsoup.connect(location)
-                    .ignoreContentType(true)
-                    .followRedirects(true)
-                    .method(Connection.Method.POST)
-                    .header("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1")
-                    .cookies(cookies);
-            // 请求，再次更新cookie
-            login = con.execute();
-            cookies.putAll(login.cookies());
+            // 第一次尝试自动更新cookie
+            String location = null;
+            try {
+                cookies.putAll(login.cookies());
+                // 拿到重定向的地址
+                location = login.header("location");
+//                System.out.println(location);
+                con = Jsoup.connect(location)
+                        .ignoreContentType(true)
+                        .followRedirects(true)
+                        .method(Connection.Method.POST)
+                        .header("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1")
+                        .cookies(cookies);
+                // 请求，再次更新cookie
+                login = con.execute();
+                cookies.putAll(login.cookies());
+            } catch (HttpStatusException e) {
+//                e.printStackTrace();
+                // 第一次自动更新cookie，失败了，携带已获取到的cookie再次尝试/portal/login接口
+                location = location.substring(0, location.lastIndexOf('?'));
+//                System.out.println(location);
+                con = Jsoup.connect(location)
+                        .ignoreContentType(true)
+                        .followRedirects(true)
+                        .method(Connection.Method.GET)
+                        .header("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1")
+                        .cookies(cookies);
+                login = con.execute();
+                cookies.putAll(login.cookies());
+            }
             // 只有登陆成功才返回cookie
             return cookies;
         } else if (login.statusCode() == HttpURLConnection.HTTP_OK) {
