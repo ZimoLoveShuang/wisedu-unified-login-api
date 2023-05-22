@@ -1,4 +1,4 @@
-package wiki.zimo.wiseduunifiedloginapi.process;
+package wiki.zimo.wiseduunifiedloginapi.process.impl;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -7,7 +7,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import wiki.zimo.wiseduunifiedloginapi.builder.CasLoginEntityBuilder;
 import wiki.zimo.wiseduunifiedloginapi.entity.CasLoginEntity;
-import wiki.zimo.wiseduunifiedloginapi.helper.AESHelper;
+import wiki.zimo.wiseduunifiedloginapi.process.BaseLoginProcess;
 import wiki.zimo.wiseduunifiedloginapi.trust.HttpsUrlValidator;
 
 import java.net.HttpURLConnection;
@@ -17,15 +17,9 @@ import java.util.Map;
 /**
  * 江苏科技大学认证
  */
-public class JustCasLoginProcess {
-    private CasLoginEntity loginEntity;
-    private Map<String, String> params;
-
+public class JustCasLoginProcess extends BaseLoginProcess {
     public JustCasLoginProcess(String loginUrl, Map<String, String> params) {
-        this.loginEntity = new CasLoginEntityBuilder()
-                .loginUrl(loginUrl)
-                .build();
-        this.params = params;
+        super(loginUrl, params, CasLoginEntityBuilder.class);
     }
 
     public Map<String, String> login() throws Exception {
@@ -109,7 +103,7 @@ public class JustCasLoginProcess {
      * @return
      * @throws Exception
      */
-    private Map<String, String> casSendLoginData(String login_url, Map<String, String> cookies, Map<String, String> params) throws Exception {
+    protected Map<String, String> casSendLoginData(String login_url, Map<String, String> cookies, Map<String, String> params) throws Exception {
         Map<String, String> headers = new HashMap<>();
         headers.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
         headers.put("Accept-Encoding", "gzip, deflate");

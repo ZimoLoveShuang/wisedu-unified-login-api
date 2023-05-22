@@ -1,46 +1,16 @@
 package wiki.zimo.wiseduunifiedloginapi.entity;
 
-public class BistuLoginEntity {
-    private String loginUrl;
-    private String needcaptchaUrl;
-    private String captchaUrl;
-
+public class BistuLoginEntity extends BaseLoginEntity {
     public BistuLoginEntity(String loginUrl, String needcaptchaUrl, String captchaUrl) {
-        this.loginUrl = loginUrl;
-        this.needcaptchaUrl = needcaptchaUrl;
-        this.captchaUrl = captchaUrl;
-    }
-
-    public String getLoginUrl() {
-        return loginUrl;
-    }
-
-    public void setLoginUrl(String loginUrl) {
-        this.loginUrl = loginUrl;
-    }
-
-    public String getNeedcaptchaUrl() {
-        return needcaptchaUrl;
-    }
-
-    public void setNeedcaptchaUrl(String needcaptchaUrl) {
-        this.needcaptchaUrl = needcaptchaUrl;
-    }
-
-    public String getCaptchaUrl() {
-        return captchaUrl;
-    }
-
-    public void setCaptchaUrl(String captchaUrl) {
-        this.captchaUrl = captchaUrl;
+        super(loginUrl, needcaptchaUrl, captchaUrl);
     }
 
     @Override
     public String toString() {
         return "CasLoginEntity{" +
-                "loginUrl='" + loginUrl + '\'' +
-                ", needcaptchaUrl='" + needcaptchaUrl + '\'' +
-                ", captchaUrl='" + captchaUrl + '\'' +
+                "loginUrl='" + getLoginUrl() + '\'' +
+                ", needcaptchaUrl='" + getNeedcaptchaUrl() + '\'' +
+                ", captchaUrl='" + getCaptchaUrl() + '\'' +
                 '}';
     }
 }

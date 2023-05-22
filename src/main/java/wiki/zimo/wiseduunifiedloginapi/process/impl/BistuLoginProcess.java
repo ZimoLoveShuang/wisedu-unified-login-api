@@ -1,32 +1,36 @@
-package wiki.zimo.wiseduunifiedloginapi.process;
+package wiki.zimo.wiseduunifiedloginapi.process.impl;
 
-import net.sourceforge.tess4j.*;
-import org.jsoup.*;
-import org.jsoup.nodes.*;
-import org.jsoup.select.*;
-import wiki.zimo.wiseduunifiedloginapi.builder.*;
-import wiki.zimo.wiseduunifiedloginapi.entity.*;
-import wiki.zimo.wiseduunifiedloginapi.helper.*;
-import wiki.zimo.wiseduunifiedloginapi.trust.*;
+import net.sourceforge.tess4j.TesseractException;
+import org.jsoup.Connection;
+import org.jsoup.HttpStatusException;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+import wiki.zimo.wiseduunifiedloginapi.builder.BistuLoginEntityBuilder;
+import wiki.zimo.wiseduunifiedloginapi.entity.BistuLoginEntity;
+import wiki.zimo.wiseduunifiedloginapi.helper.AESHelper;
+import wiki.zimo.wiseduunifiedloginapi.helper.ImageHelper;
+import wiki.zimo.wiseduunifiedloginapi.helper.TesseractOCRHelper;
+import wiki.zimo.wiseduunifiedloginapi.process.OcrLoginProcess;
+import wiki.zimo.wiseduunifiedloginapi.trust.HttpsUrlValidator;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-import java.util.regex.*;
+import java.io.File;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
  * NOTCLOUD认证
  */
-public class BistuLoginProcess {
-    private final BistuLoginEntity loginEntity;
-    private final Map<String, String> params;
-
+public class BistuLoginProcess extends OcrLoginProcess {
     public BistuLoginProcess(String loginUrl, Map<String, String> params) {
-        this.loginEntity = new BistuLoginEntityBuilder()
-                .loginUrl(loginUrl)
-                .build();
-        this.params = params;
+        super(loginUrl, params, BistuLoginEntityBuilder.class);
     }
 
     public Map<String, String> login() throws Exception {
@@ -66,9 +70,9 @@ public class BistuLoginProcess {
             for (Element script : scripts) {
                 if (script.data().contains("pwdDefaultEncryptSalt")) {
                     // 用正则表达式匹配盐
-                    String  pattern = "\"\\w{16}\"";
-                    Pattern p       = Pattern.compile(pattern);
-                    Matcher m       = p.matcher(script.data());
+                    String pattern = "\"\\w{16}\"";
+                    Pattern p = Pattern.compile(pattern);
+                    Matcher m = p.matcher(script.data());
                     if (m.find()) {
                         String group = m.group();
                         salt = group.substring(1, group.length() - 1);
@@ -156,7 +160,7 @@ public class BistuLoginProcess {
      * @return
      * @throws Exception
      */
-    private Map<String, String> casSendLoginData(String login_url, Map<String, String> cookies, Map<String, String> params) throws Exception {
+    protected Map<String, String> casSendLoginData(String login_url, Map<String, String> cookies, Map<String, String> params) throws Exception {
         Connection con = Jsoup
                 .connect(login_url)
 
@@ -207,7 +211,7 @@ public class BistuLoginProcess {
             if (login.statusCode() == HttpURLConnection.HTTP_OK) {
                 // 登陆失败
                 Document doc = login.parse();
-                Element  msg = doc.getElementById("msg");
+                Element msg = doc.getElementById("msg");
                 if (!msg.text().equals("无效的验证码")) {
                     throw new RuntimeException(msg.text());
                 }
@@ -228,7 +232,7 @@ public class BistuLoginProcess {
      * @throws IOException
      * @throws TesseractException
      */
-    private String ocrCaptcha(Map<String, String> cookies, Map<String, String> headers, String captcha_url) throws IOException, TesseractException {
+    protected String ocrCaptcha(Map<String, String> cookies, Map<String, String> headers, String captcha_url) throws IOException, TesseractException {
         while (true) {
             String filePach = System.getProperty("user.dir") + File.separator + System.currentTimeMillis() + ".jpg";
             Connection.Response response = Jsoup.connect(captcha_url)
@@ -257,7 +261,7 @@ public class BistuLoginProcess {
      * @param len
      * @return
      */
-    private boolean judge(String s, int len) {
+    protected boolean judge(String s, int len) {
         if (s == null || s.length() != len) {
             return false;
         }

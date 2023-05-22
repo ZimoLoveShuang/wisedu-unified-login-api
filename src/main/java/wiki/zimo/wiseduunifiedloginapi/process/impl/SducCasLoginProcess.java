@@ -1,4 +1,4 @@
-package wiki.zimo.wiseduunifiedloginapi.process;
+package wiki.zimo.wiseduunifiedloginapi.process.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -12,6 +12,7 @@ import wiki.zimo.wiseduunifiedloginapi.helper.ImageHelper;
 import wiki.zimo.wiseduunifiedloginapi.helper.RSAHelper;
 import wiki.zimo.wiseduunifiedloginapi.helper.TesseractOCRHelper;
 import wiki.zimo.wiseduunifiedloginapi.helper.TimeStampHelper;
+import wiki.zimo.wiseduunifiedloginapi.process.OcrLoginProcess;
 import wiki.zimo.wiseduunifiedloginapi.trust.HttpsUrlValidator;
 
 import java.io.File;
@@ -23,16 +24,9 @@ import java.util.Map;
 /**
  * 山东城市建设职业学院认证
  */
-public class SducCasLoginProcess {
-
-    private CasLoginEntity loginEntity;
-    private Map<String, String> params;
-
+public class SducCasLoginProcess extends OcrLoginProcess {
     public SducCasLoginProcess(String loginUrl, Map<String, String> params) {
-        this.loginEntity = new CasLoginEntityBuilder()
-                .loginUrl(loginUrl)
-                .build();
-        this.params = params;
+        super(loginUrl, params, CasLoginEntityBuilder.class);
     }
 
     public Map<String, String> login() throws Exception {
@@ -198,6 +192,11 @@ public class SducCasLoginProcess {
         throw new RuntimeException("验证码识别错误，请重试");
     }
 
+    @Override
+    protected Map<String, String> casSendLoginData(String login_url, Map<String, String> cookies, Map<String, String> params) throws Exception {
+        return null;
+    }
+
     /**
      * cas发送登陆请求，返回cookies
      *
@@ -330,24 +329,5 @@ public class SducCasLoginProcess {
                 }
             }
         }
-    }
-
-    /**
-     * 判断ocr识别出来的结果是否符合条件
-     *
-     * @param s
-     * @param len
-     * @return
-     */
-    private boolean judge(String s, int len) {
-        if (s == null || s.length() != len) {
-            return false;
-        }
-
-        if (!s.matches("[0-9](\\+|-|\\*|/)[0-9]=\\?")) {
-            return false;
-        }
-
-        return true;
     }
 }

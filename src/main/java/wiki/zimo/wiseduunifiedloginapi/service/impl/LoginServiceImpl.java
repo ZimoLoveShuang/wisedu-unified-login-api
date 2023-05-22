@@ -3,7 +3,7 @@ package wiki.zimo.wiseduunifiedloginapi.service.impl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import wiki.zimo.wiseduunifiedloginapi.process.*;
+import wiki.zimo.wiseduunifiedloginapi.process.impl.*;
 import wiki.zimo.wiseduunifiedloginapi.service.LoginService;
 
 import java.util.HashMap;
@@ -67,10 +67,10 @@ public class LoginServiceImpl implements LoginService {
         } else if (login_url.trim().contains("hytc.edu.cn")) {
             HytcCasLoginProcess process = new HytcCasLoginProcess(login_url, params);
             return process.login();
-        } else if(login_url.trim().contains("bistu.edu.cn")){
+        } else if (login_url.trim().contains("bistu.edu.cn")) {
             BistuLoginProcess process = new BistuLoginProcess(login_url, params);
             return process.login();
-        }else {
+        } else {
             CasLoginProcess process = new CasLoginProcess(login_url, params);
             return process.login();
         }
