@@ -15,6 +15,13 @@ import java.util.Random;
 
 public class AESHelper {
 
+    private static final String CIPHER_NAME = "AES/CBC/PKCS5Padding";
+    private static final String CHARSETNAME = "UTF-8";
+    private static final String AES = "AES";
+    private static final String BASE_STRING = "ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678";
+    private static final int RANDOM_IV_LENGTH = 16;
+    private static final int RANDOM_STRING_LENGTH = 64;
+
     static {
         Security.addProvider(new BouncyCastleProvider());
     }
@@ -60,13 +67,6 @@ public class AESHelper {
     public static String decryptAES(String encrypt, String key, String iv) throws Exception {
         return AESDecrypt(Base64Decrypt(encrypt), key, iv).substring(RANDOM_STRING_LENGTH);
     }
-
-    private static final String CIPHER_NAME = "AES/CBC/PKCS5Padding";
-    private static final String CHARSETNAME = "UTF-8";
-    private static final String AES = "AES";
-    private static final String BASE_STRING = "ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678";
-    private static final int RANDOM_IV_LENGTH = 16;
-    private static final int RANDOM_STRING_LENGTH = 64;
 
     /**
      * AES加密
