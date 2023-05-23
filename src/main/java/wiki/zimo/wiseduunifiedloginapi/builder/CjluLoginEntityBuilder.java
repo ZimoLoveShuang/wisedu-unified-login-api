@@ -9,7 +9,7 @@ import wiki.zimo.wiseduunifiedloginapi.entity.CasLoginEntity;
 public class CjluLoginEntityBuilder extends BaseLoginEntityBuilder {
     @Override
     public BaseLoginEntity build() {
-        this.needcaptchaUrl = protocol + "://" + host + "/authserver/needCaptcha.html";
+        this.needcaptchaUrl = protocol + "://" + host + "/authserver/checkNeedCaptcha.htl";
         this.captchaUrl = protocol + "://" + host + "/authserver/getCaptcha.htl?" + System.currentTimeMillis();
         return new CasLoginEntity(loginUrl, needcaptchaUrl, captchaUrl);
     }
