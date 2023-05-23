@@ -34,5 +34,14 @@ public abstract class BaseLoginProcess {
 
     public abstract Map<String, String> login() throws Exception;
 
+    /**
+     * cas发送登陆请求，返回cookies
+     *
+     * @param login_url 登录地址
+     * @param cookies  cookies
+     * @param params    参数
+     * @return cookies
+     * @throws Exception
+     */
     protected abstract Map<String, String> casSendLoginData(String login_url, Map<String, String> cookies, Map<String, String> params) throws Exception;
 }
