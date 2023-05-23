@@ -107,15 +107,18 @@ public class CjluLoginProcess extends OcrLoginProcess {
         headers.put("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1");
 
         // 模拟登陆之前首先请求是否需要验证码接口
-        Element captchaDiv = form.getElementById("loginFromId").getElementById("cpatchaDiv");
-        boolean isNeedCaptcha = !StringUtils.isEmpty(captchaDiv.attributes().get("style"));
+        doc = Jsoup.connect(loginEntity.getNeedcaptchaUrl() + "?username=" + username)
+                .headers(headers)
+                .cookies(cookies)
+                .get();
+        boolean isNeedCaptcha = doc.body().text().contains("true");
 
         if (isNeedCaptcha) {
             // 识别验证码后模拟登陆，最多尝试20次
             int time = TesseractOCRHelper.MAX_TRY_TIMES;
             while (time-- > 0) {
                 String code = ocrCaptcha(cookies, headers, loginEntity.getCaptchaUrl(), 4);
-                params.put("captchaResponse", code);
+                params.put("captcha", code);
                 Map<String, String> cookies2 = casSendLoginData(loginEntity.getLoginUrl(), cookies, params);
                 if (cookies2 != null) {
                     return cookies2;
@@ -131,14 +134,24 @@ public class CjluLoginProcess extends OcrLoginProcess {
 
     @Override
     protected Map<String, String> casSendLoginData(String login_url, Map<String, String> cookies, Map<String, String> params) throws Exception {
-        Connection con = Jsoup.connect(login_url);
+        Connection con = Jsoup.connect(login_url)
+                .header("Origin", "https://authserver.cjlu.edu.cn")
+                .header("Referer", "https://authserver.cjlu.edu.cn/authserver/login");;
 //        System.out.println(login_url);
-        Connection.Response login = con.ignoreContentType(true)
-                .followRedirects(false)
-                .method(Connection.Method.POST)
-                .data(params)
-                .cookies(cookies)
-                .execute();
+        System.out.println(params);
+        Connection.Response login = null;
+        try {
+            login = con.ignoreContentType(true)
+                    .followRedirects(false)
+                    .method(Connection.Method.POST)
+                    .data(params)
+                    .cookies(cookies)
+                    .execute();
+        } catch (Exception e) {
+            System.out.println("=======》");
+            e.printStackTrace();
+        }
+
 //        System.out.println(params);
 //        System.out.println(login.statusCode());
         if (login.statusCode() == HttpURLConnection.HTTP_MOVED_TEMP) {
