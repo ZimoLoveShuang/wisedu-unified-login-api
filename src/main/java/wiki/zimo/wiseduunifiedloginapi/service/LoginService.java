@@ -5,9 +5,10 @@ import java.util.Map;
 public interface LoginService {
     /**
      * 登陆
+     *
      * @param login_url 登陆接口
-     * @param username 用户名
-     * @param password 密码
+     * @param username  用户名
+     * @param password  密码
      * @return 返回登陆后的cookie
      * @throws Exception 异常
      */
@@ -15,6 +16,7 @@ public interface LoginService {
 
     /**
      * 登陆
+     *
      * @param username
      * @param password
      * @return

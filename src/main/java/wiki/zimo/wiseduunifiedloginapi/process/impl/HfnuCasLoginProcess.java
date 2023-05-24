@@ -6,7 +6,6 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import wiki.zimo.wiseduunifiedloginapi.builder.CasLoginEntityBuilder;
-import wiki.zimo.wiseduunifiedloginapi.entity.CasLoginEntity;
 import wiki.zimo.wiseduunifiedloginapi.process.BaseLoginProcess;
 
 import java.util.HashMap;

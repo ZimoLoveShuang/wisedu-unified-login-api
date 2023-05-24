@@ -38,7 +38,7 @@ public abstract class OcrLoginProcess extends BaseLoginProcess {
             String s = TesseractOCRHelper.doOcr(filePach);
 
             File temp = new File(filePach);
-            temp.delete();
+//            temp.delete();
 
             // 判断是否为字母或数字
             if (judge(s, length)) {

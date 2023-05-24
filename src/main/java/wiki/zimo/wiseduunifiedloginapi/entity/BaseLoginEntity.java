@@ -2,6 +2,7 @@ package wiki.zimo.wiseduunifiedloginapi.entity;
 
 /**
  * 登陆实体基类
+ *
  * @author SanseYooyea
  */
 public abstract class BaseLoginEntity {

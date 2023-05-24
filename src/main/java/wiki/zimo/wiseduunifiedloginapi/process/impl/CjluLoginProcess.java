@@ -1,6 +1,5 @@
 package wiki.zimo.wiseduunifiedloginapi.process.impl;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Connection;
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
@@ -74,7 +73,6 @@ public class CjluLoginProcess extends OcrLoginProcess {
             }
 
             // 填充密码
-            System.out.println(e);
             if ("password".equals(e.attr("name"))) {
                 if (salt != null) {
                     e.attr("value", AESHelper.encryptAES(password, salt));
@@ -118,6 +116,7 @@ public class CjluLoginProcess extends OcrLoginProcess {
             int time = TesseractOCRHelper.MAX_TRY_TIMES;
             while (time-- > 0) {
                 String code = ocrCaptcha(cookies, headers, loginEntity.getCaptchaUrl(), 4);
+                System.out.println("验证码识别结果：" + code);
                 params.put("captcha", code);
                 Map<String, String> cookies2 = casSendLoginData(loginEntity.getLoginUrl(), cookies, params);
                 if (cookies2 != null) {
@@ -136,9 +135,10 @@ public class CjluLoginProcess extends OcrLoginProcess {
     protected Map<String, String> casSendLoginData(String login_url, Map<String, String> cookies, Map<String, String> params) throws Exception {
         Connection con = Jsoup.connect(login_url)
                 .header("Origin", "https://authserver.cjlu.edu.cn")
-                .header("Referer", "https://authserver.cjlu.edu.cn/authserver/login");;
+                .header("Referer", "https://authserver.cjlu.edu.cn/authserver/login");
+        ;
 //        System.out.println(login_url);
-        System.out.println(params);
+//        System.out.println(params);
         Connection.Response login = null;
         try {
             login = con.ignoreContentType(true)

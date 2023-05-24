@@ -22,7 +22,8 @@ public abstract class BaseLoginProcess {
                     .loginUrl(loginUrl)
                     .build();
             this.params = params;
-        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
+                 InvocationTargetException e) {
             throw new RuntimeException(e);
         }
     }
@@ -38,7 +39,7 @@ public abstract class BaseLoginProcess {
      * cas发送登陆请求，返回cookies
      *
      * @param login_url 登录地址
-     * @param cookies  cookies
+     * @param cookies   cookies
      * @param params    参数
      * @return cookies
      * @throws Exception

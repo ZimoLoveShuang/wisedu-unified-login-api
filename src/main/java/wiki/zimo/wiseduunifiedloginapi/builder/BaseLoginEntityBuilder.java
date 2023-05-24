@@ -17,6 +17,7 @@ public abstract class BaseLoginEntityBuilder {
 
     /**
      * 设置登陆地址
+     *
      * @param loginUrl 登陆地址
      * @return this
      */
@@ -35,6 +36,7 @@ public abstract class BaseLoginEntityBuilder {
 
     /**
      * 完成构建
+     *
      * @return 构建好的登陆实体
      */
     public abstract BaseLoginEntity build();

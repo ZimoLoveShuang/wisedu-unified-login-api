@@ -8,7 +8,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import wiki.zimo.wiseduunifiedloginapi.builder.BistuLoginEntityBuilder;
-import wiki.zimo.wiseduunifiedloginapi.entity.BistuLoginEntity;
 import wiki.zimo.wiseduunifiedloginapi.helper.AESHelper;
 import wiki.zimo.wiseduunifiedloginapi.helper.ImageHelper;
 import wiki.zimo.wiseduunifiedloginapi.helper.TesseractOCRHelper;
