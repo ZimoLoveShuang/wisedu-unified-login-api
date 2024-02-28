@@ -143,12 +143,6 @@
 - 2020-06-03 支持更新后的CLOUD方式认证接口 v1.0.1
 - 2020-05-08 开源模拟登陆API接口 v1.0
 
-# 捐赠
+# Star History
 
-1. 如果觉得作者做得不错，想捐赠我的话，请扫描下面的二维码
-<table>
-    <tr>
-        <td ><center><img src="https://blog.zimo.wiki/images/wechatpay.png" /></center></td>
-        <td ><center><img src="https://blog.zimo.wiki/images/alipay.png" /></center></td>
-    </tr>
-</table>
+![](https://starchart.cc/ZimoLoveShuang/wisedu-unified-login-api.svg?variant=adaptive)
