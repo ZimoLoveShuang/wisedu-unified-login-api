@@ -32,15 +32,15 @@ public class HttpsUrlValidator {
                     connection.getInputStream()));
 
             String line;
-            final StringBuffer stringBuffer = new StringBuffer(255);
+            final StringBuilder stringBuilder = new StringBuilder(255);
 
-            synchronized (stringBuffer) {
+            synchronized (stringBuilder) {
                 while ((line = in.readLine()) != null) {
-                    stringBuffer.append(line);
-                    stringBuffer.append("\n");
+                    stringBuilder.append(line);
+                    stringBuilder.append("\n");
                 }
 
-                return stringBuffer.toString();
+                return stringBuilder.toString();
             }
 
         } catch (Exception e) {

@@ -1,4 +1,4 @@
-package wiki.zimo.wiseduunifiedloginapi.process;
+package wiki.zimo.wiseduunifiedloginapi.process.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -6,7 +6,7 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import wiki.zimo.wiseduunifiedloginapi.builder.CasLoginEntityBuilder;
-import wiki.zimo.wiseduunifiedloginapi.entity.CasLoginEntity;
+import wiki.zimo.wiseduunifiedloginapi.process.BaseLoginProcess;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,17 +14,11 @@ import java.util.Map;
 /**
  * 合肥师范学院认证
  */
-public class HfnuCasLoginProcess {
-    private CasLoginEntity loginEntity;
-    private Map<String, String> params;
-
+public class HfnuCasLoginProcess extends BaseLoginProcess {
     public HfnuCasLoginProcess(String loginUrl, Map<String, String> params) {
-        this.loginEntity = new CasLoginEntityBuilder()
-                .loginUrl(loginUrl)
-                .build();
+        super(loginUrl, params, CasLoginEntityBuilder.class);
         loginEntity.setNeedcaptchaUrl(null);
         loginEntity.setCaptchaUrl(null);
-        this.params = params;
     }
 
     public Map<String, String> login() throws Exception {
@@ -78,5 +72,10 @@ public class HfnuCasLoginProcess {
         cookies.putAll(res.cookies());
 
         return cookies;
+    }
+
+    @Override
+    protected Map<String, String> casSendLoginData(String login_url, Map<String, String> cookies, Map<String, String> params) throws Exception {
+        return null;
     }
 }

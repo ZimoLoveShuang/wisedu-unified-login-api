@@ -1,20 +1,16 @@
-package wiki.zimo.wiseduunifiedloginapi.process;
+package wiki.zimo.wiseduunifiedloginapi.process.impl;
 
-import net.sourceforge.tess4j.TesseractException;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import wiki.zimo.wiseduunifiedloginapi.builder.CasLoginEntityBuilder;
-import wiki.zimo.wiseduunifiedloginapi.entity.CasLoginEntity;
-import wiki.zimo.wiseduunifiedloginapi.helper.ImageHelper;
 import wiki.zimo.wiseduunifiedloginapi.helper.RSAHelper;
 import wiki.zimo.wiseduunifiedloginapi.helper.TesseractOCRHelper;
+import wiki.zimo.wiseduunifiedloginapi.process.OcrLoginProcess;
 import wiki.zimo.wiseduunifiedloginapi.trust.HttpsUrlValidator;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
@@ -23,15 +19,9 @@ import java.util.Map;
 /**
  * 昆明学院认证
  */
-public class KmuCasLoginProcess {
-    private CasLoginEntity loginEntity;
-    private Map<String, String> params;
-
+public class KmuCasLoginProcess extends OcrLoginProcess {
     public KmuCasLoginProcess(String loginUrl, Map<String, String> params) {
-        this.loginEntity = new CasLoginEntityBuilder()
-                .loginUrl(loginUrl)
-                .build();
-        this.params = params;
+        super(loginUrl, params, CasLoginEntityBuilder.class);
     }
 
     public Map<String, String> login() throws Exception {
@@ -114,7 +104,7 @@ public class KmuCasLoginProcess {
             // 识别验证码后模拟登陆，最多尝试20次
             int time = TesseractOCRHelper.MAX_TRY_TIMES;
             while (time-- > 0) {
-                String code = ocrCaptcha(cookies, headers, loginEntity.getCaptchaUrl());
+                String code = ocrCaptcha(cookies, headers, loginEntity.getCaptchaUrl(), 4);
 //                System.out.println(code);
                 params.put("captcha", code);
                 Map<String, String> cookies2 = casSendLoginData(loginEntity.getLoginUrl(), cookies, params);
@@ -139,7 +129,7 @@ public class KmuCasLoginProcess {
      * @return
      * @throws Exception
      */
-    private Map<String, String> casSendLoginData(String login_url, Map<String, String> cookies, Map<String, String> params) throws Exception {
+    protected Map<String, String> casSendLoginData(String login_url, Map<String, String> cookies, Map<String, String> params) throws Exception {
         Connection con = Jsoup.connect(login_url);
 //        System.out.println(login_url);
         Connection.Response login = con.ignoreContentType(true).followRedirects(false).method(Connection.Method.POST).data(params).cookies(cookies).execute();
@@ -175,59 +165,5 @@ public class KmuCasLoginProcess {
             throw new RuntimeException("教务系统服务器可能出错了，Http状态码是：" + login.statusCode());
         }
         return null;
-    }
-
-    /**
-     * 处理验证码识别
-     *
-     * @param cookies
-     * @param captcha_url
-     * @return
-     * @throws IOException
-     * @throws TesseractException
-     */
-    private String ocrCaptcha(Map<String, String> cookies, Map<String, String> headers, String captcha_url) throws IOException, TesseractException {
-        while (true) {
-            String filePach = System.getProperty("user.dir") + File.separator + System.currentTimeMillis() + ".jpg";
-//            System.out.println(filePach);
-//            System.out.println(captcha_url);
-            Connection.Response response = Jsoup.connect(captcha_url)
-                    .headers(headers).cookies(cookies)
-                    .ignoreContentType(true)
-                    .execute();
-
-            // 四位验证码，背景有噪点
-            ImageHelper.saveImageFile(ImageHelper.binaryzation(response.bodyStream()), filePach);
-            String s = TesseractOCRHelper.doOcr(filePach);
-
-            File temp = new File(filePach);
-            temp.delete();
-
-            if (judge(s, 4)) {
-                return s;
-            }
-        }
-    }
-
-    /**
-     * 判断ocr识别出来的结果是否符合条件
-     *
-     * @param s
-     * @param len
-     * @return
-     */
-    private boolean judge(String s, int len) {
-        if (s == null || s.length() != len) {
-            return false;
-        }
-
-        for (int i = 0; i < s.length(); i++) {
-            char ch = s.charAt(i);
-            if (!(Character.isDigit(ch) || Character.isLetter(ch))) {
-                return false;
-            }
-        }
-
-        return true;
     }
 }

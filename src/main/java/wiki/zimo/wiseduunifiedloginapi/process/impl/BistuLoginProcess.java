@@ -1,4 +1,4 @@
-package wiki.zimo.wiseduunifiedloginapi.process;
+package wiki.zimo.wiseduunifiedloginapi.process.impl;
 
 import net.sourceforge.tess4j.TesseractException;
 import org.jsoup.Connection;
@@ -7,11 +7,11 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import wiki.zimo.wiseduunifiedloginapi.builder.CasLoginEntityBuilder;
-import wiki.zimo.wiseduunifiedloginapi.entity.CasLoginEntity;
+import wiki.zimo.wiseduunifiedloginapi.builder.BistuLoginEntityBuilder;
 import wiki.zimo.wiseduunifiedloginapi.helper.AESHelper;
 import wiki.zimo.wiseduunifiedloginapi.helper.ImageHelper;
 import wiki.zimo.wiseduunifiedloginapi.helper.TesseractOCRHelper;
+import wiki.zimo.wiseduunifiedloginapi.process.OcrLoginProcess;
 import wiki.zimo.wiseduunifiedloginapi.trust.HttpsUrlValidator;
 
 import java.io.File;
@@ -23,18 +23,13 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
 /**
  * NOTCLOUD认证
  */
-public class CasLoginProcess {
-    private CasLoginEntity loginEntity;
-    private Map<String, String> params;
-
-    public CasLoginProcess(String loginUrl, Map<String, String> params) {
-        this.loginEntity = new CasLoginEntityBuilder()
-                .loginUrl(loginUrl)
-                .build();
-        this.params = params;
+public class BistuLoginProcess extends OcrLoginProcess {
+    public BistuLoginProcess(String loginUrl, Map<String, String> params) {
+        super(loginUrl, params, BistuLoginEntityBuilder.class);
     }
 
     public Map<String, String> login() throws Exception {
@@ -50,20 +45,18 @@ public class CasLoginProcess {
 
         // 解析登陆页
         Document doc = res.parse();
-//        System.out.println(doc);
 
         // 全局cookie
         Map<String, String> cookies = res.cookies();
 
         // 获取登陆表单
-        Element form = doc.getElementById("casLoginForm");
-//        System.out.println(form);
+        Element form = doc.getElementById("pwdLoginDiv");
         if (form == null) {
             throw new RuntimeException("网页中没有找到casLoginForm，请联系开发者！！！");
         }
 
         // 处理加密的盐
-        Element saltElement = doc.getElementById("pwdDefaultEncryptSalt");
+        Element saltElement = doc.getElementById("pwdEncryptSalt");
 
         String salt = null;
         if (saltElement != null) {
@@ -75,7 +68,6 @@ public class CasLoginProcess {
             Elements scripts = doc.getElementsByTag("script");
             for (Element script : scripts) {
                 if (script.data().contains("pwdDefaultEncryptSalt")) {
-//                    System.out.println(script.data());
                     // 用正则表达式匹配盐
                     String pattern = "\"\\w{16}\"";
                     Pattern p = Pattern.compile(pattern);
@@ -83,19 +75,14 @@ public class CasLoginProcess {
                     if (m.find()) {
                         String group = m.group();
                         salt = group.substring(1, group.length() - 1);
-//                        System.out.println(group);
-//                        System.out.println(salt);
                     }
                     break;
                 }
             }
         }
 
-//        System.out.println("盐是 " + salt);
-
         // 获取登陆表单里的输入
         Elements inputs = form.getElementsByTag("input");
-
 
         String username = this.params.get("username");
         String password = this.params.get("password");
@@ -128,8 +115,6 @@ public class CasLoginProcess {
             }
         }
 
-//        System.out.println("登陆参数 " + params);
-
         // 构造请求头
         Map<String, String> headers = new HashMap<>();
         headers.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
@@ -145,15 +130,13 @@ public class CasLoginProcess {
                 .headers(headers)
                 .cookies(cookies)
                 .get();
-        boolean isNeedCaptcha = Boolean.valueOf(doc.body().text());
-//        System.out.println(isNeedCaptcha);
+        boolean isNeedCaptcha = doc.body().text().contains("true");
         if (isNeedCaptcha) {
             // 识别验证码后模拟登陆，最多尝试20次
             int time = TesseractOCRHelper.MAX_TRY_TIMES;
             while (time-- > 0) {
                 String code = ocrCaptcha(cookies, headers, loginEntity.getCaptchaUrl());
-//                System.out.println(code);
-                params.put("captchaResponse", code);
+                params.put("captcha", code);
                 Map<String, String> cookies2 = casSendLoginData(loginEntity.getLoginUrl(), cookies, params);
                 if (cookies2 != null) {
                     return cookies2;
@@ -176,12 +159,21 @@ public class CasLoginProcess {
      * @return
      * @throws Exception
      */
-    private Map<String, String> casSendLoginData(String login_url, Map<String, String> cookies, Map<String, String> params) throws Exception {
-        Connection con = Jsoup.connect(login_url);
-//        System.out.println(login_url);
-        Connection.Response login = con.ignoreContentType(true).followRedirects(false).method(Connection.Method.POST).data(params).cookies(cookies).execute();
-//        System.out.println(params);
-//        System.out.println(login.statusCode());
+    protected Map<String, String> casSendLoginData(String login_url, Map<String, String> cookies, Map<String, String> params) throws Exception {
+        Connection con = Jsoup
+                .connect(login_url)
+
+                .header("Origin", "http://wxjw.bistu.edu.cn")
+                .header("Referer", "http://wxjw.bistu.edu.cn/authserver/login?service=http://jwxt.bistu.edu.cn/jwapp/sys/emaphome/portal/index.do");
+        System.out.println(login_url);
+        Connection.Response login = null;
+        // TODO 添加异常捕获机制
+        try {
+            login = con.ignoreContentType(true).followRedirects(false).method(Connection.Method.POST).data(params).cookies(cookies).execute();
+        } catch (Exception e) {
+            System.out.println("=======》");
+            e.printStackTrace();
+        }
         if (login.statusCode() == HttpURLConnection.HTTP_MOVED_TEMP) {
             // 重定向代表登陆成功
             // 第一次尝试自动更新cookie
@@ -190,8 +182,8 @@ public class CasLoginProcess {
                 cookies.putAll(login.cookies());
                 // 拿到重定向的地址
                 location = login.header("location");
-//                System.out.println(location);
                 con = Jsoup.connect(location)
+
                         .ignoreContentType(true)
                         .followRedirects(true)
                         .method(Connection.Method.POST)
@@ -201,10 +193,8 @@ public class CasLoginProcess {
                 login = con.execute();
                 cookies.putAll(login.cookies());
             } catch (HttpStatusException e) {
-//                e.printStackTrace();
                 // 第一次自动更新cookie，失败了，携带已获取到的cookie再次尝试/portal/login接口
                 location = location.substring(0, location.lastIndexOf('?'));
-//                System.out.println(location);
                 con = Jsoup.connect(location)
                         .ignoreContentType(true)
                         .followRedirects(true)
@@ -216,17 +206,18 @@ public class CasLoginProcess {
             }
             // 只有登陆成功才返回cookie
             return cookies;
-        } else if (login.statusCode() == HttpURLConnection.HTTP_OK) {
-            // 登陆失败
-            Document doc = login.parse();
-            Element msg = doc.getElementById("msg");
-//            System.out.println(msg);
-            if (!msg.text().equals("无效的验证码")) {
-                throw new RuntimeException(msg.text());
-            }
         } else {
-            // 服务器可能出错
-            throw new RuntimeException("教务系统服务器可能出错了，Http状态码是：" + login.statusCode());
+            if (login.statusCode() == HttpURLConnection.HTTP_OK) {
+                // 登陆失败
+                Document doc = login.parse();
+                Element msg = doc.getElementById("msg");
+                if (!msg.text().equals("无效的验证码")) {
+                    throw new RuntimeException(msg.text());
+                }
+            } else {
+                // 服务器可能出错
+                throw new RuntimeException("教务系统服务器可能出错了，Http状态码是：" + login.statusCode());
+            }
         }
         return null;
     }
@@ -240,11 +231,9 @@ public class CasLoginProcess {
      * @throws IOException
      * @throws TesseractException
      */
-    private String ocrCaptcha(Map<String, String> cookies, Map<String, String> headers, String captcha_url) throws IOException, TesseractException {
+    protected String ocrCaptcha(Map<String, String> cookies, Map<String, String> headers, String captcha_url) throws IOException, TesseractException {
         while (true) {
             String filePach = System.getProperty("user.dir") + File.separator + System.currentTimeMillis() + ".jpg";
-//            System.out.println(filePach);
-//            System.out.println(captcha_url);
             Connection.Response response = Jsoup.connect(captcha_url)
                     .headers(headers).cookies(cookies)
                     .ignoreContentType(true)
@@ -257,6 +246,7 @@ public class CasLoginProcess {
             File temp = new File(filePach);
             temp.delete();
 
+            // 判断是否为字母或数字
             if (judge(s, 4)) {
                 return s;
             }
@@ -270,18 +260,16 @@ public class CasLoginProcess {
      * @param len
      * @return
      */
-    private boolean judge(String s, int len) {
+    protected boolean judge(String s, int len) {
         if (s == null || s.length() != len) {
             return false;
         }
-
         for (int i = 0; i < s.length(); i++) {
             char ch = s.charAt(i);
             if (!(Character.isDigit(ch) || Character.isLetter(ch))) {
                 return false;
             }
         }
-
         return true;
     }
 }

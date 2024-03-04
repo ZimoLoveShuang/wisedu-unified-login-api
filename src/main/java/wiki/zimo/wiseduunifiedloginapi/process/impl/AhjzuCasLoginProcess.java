@@ -1,4 +1,4 @@
-package wiki.zimo.wiseduunifiedloginapi.process;
+package wiki.zimo.wiseduunifiedloginapi.process.impl;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -6,8 +6,9 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import wiki.zimo.wiseduunifiedloginapi.builder.CasLoginEntityBuilder;
-import wiki.zimo.wiseduunifiedloginapi.entity.CasLoginEntity;
 import wiki.zimo.wiseduunifiedloginapi.helper.RSAHelper;
+import wiki.zimo.wiseduunifiedloginapi.helper.TesseractOCRHelper;
+import wiki.zimo.wiseduunifiedloginapi.process.OcrLoginProcess;
 import wiki.zimo.wiseduunifiedloginapi.trust.HttpsUrlValidator;
 
 import java.net.HttpURLConnection;
@@ -16,17 +17,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 淮阴师范学院认证
+ * 安徽建筑大学认证
  */
-public class HytcCasLoginProcess {
-    private CasLoginEntity loginEntity;
-    private Map<String, String> params;
-
-    public HytcCasLoginProcess(String loginUrl, Map<String, String> params) {
-        this.loginEntity = new CasLoginEntityBuilder()
-                .loginUrl(loginUrl)
-                .build();
-        this.params = params;
+public class AhjzuCasLoginProcess extends OcrLoginProcess {
+    public AhjzuCasLoginProcess(String loginUrl, Map<String, String> params) {
+        super(loginUrl, params, CasLoginEntityBuilder.class);
+        loginEntity.setCaptchaUrl("http://sso.ahjzu.edu.cn/sso/code/code.jsp");
     }
 
     public Map<String, String> login() throws Exception {
@@ -40,20 +36,20 @@ public class HytcCasLoginProcess {
                 .followRedirects(true);
         Connection.Response res = con.execute();
 
-        loginEntity.setLoginUrl(res.url().toString());
-
         // 解析登陆页
         Document doc = res.parse();
+        // 更新loginUrl
+        loginEntity.setLoginUrl(res.url().toString());
 //        System.out.println(doc);
 
         // 全局cookie
         Map<String, String> cookies = res.cookies();
 
         // 获取登陆表单
-        Element form = doc.getElementById("fm1");
+        Element form = doc.getElementById("credentials");
 //        System.out.println(form);
         if (form == null) {
-            throw new RuntimeException("网页中没有找到fm1，请联系开发者！！！");
+            throw new RuntimeException("网页中没有找到credentials，请联系开发者！！！");
         }
 
         // 获取登陆表单里的输入
@@ -74,7 +70,7 @@ public class HytcCasLoginProcess {
 
             // 填充密码
             if (e.attr("name").equals("password")) {
-                e.attr("value", RSAHelper.encrypt4(password));
+                e.attr("value", RSAHelper.encrypt(password));
             }
 
             // 排除空值表单属性
@@ -99,23 +95,40 @@ public class HytcCasLoginProcess {
         headers.put("Upgrade-Insecure-Requests", "1");
         headers.put("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1");
 
-        // 不需要验证码过程，或者说验证码过程有设计缺陷，根本不会触发，所以直接模拟登陆
-        return casSendLoginData(loginEntity.getLoginUrl(), cookies, params);
+        boolean isNeedCaptcha = true;
+//        System.out.println(isNeedCaptcha);
+        if (isNeedCaptcha) {
+            // 识别验证码后模拟登陆，最多尝试20次
+            int time = TesseractOCRHelper.MAX_TRY_TIMES;
+            while (time-- > 0) {
+                String code = ocrCaptcha(cookies, headers, loginEntity.getCaptchaUrl(), 4);
+//                System.out.println(code);
+                params.put("validateCode", code);
+                Map<String, String> cookies2 = casSendLoginData(loginEntity.getLoginUrl(), cookies, params);
+                if (cookies2 != null) {
+                    return cookies2;
+                }
+            }
+            // 执行到这里就代表验证码识别尝试已经达到了最大的次数
+            throw new RuntimeException("验证码识别错误，请重试");
+        } else {
+            // 直接模拟登陆
+            return casSendLoginData(loginEntity.getLoginUrl(), cookies, params);
+        }
     }
 
     /**
      * cas发送登陆请求，返回cookies
-     *
-     * @param login_url
-     * @param cookies
-     * @param params
-     * @return
-     * @throws Exception
      */
-    private Map<String, String> casSendLoginData(String login_url, Map<String, String> cookies, Map<String, String> params) throws Exception {
+    protected Map<String, String> casSendLoginData(String login_url, Map<String, String> cookies, Map<String, String> params) throws Exception {
         Connection con = Jsoup.connect(login_url);
 //        System.out.println(login_url);
-        Connection.Response login = con.ignoreContentType(true).followRedirects(false).method(Connection.Method.POST).data(params).cookies(cookies).execute();
+        Connection.Response login = con.ignoreContentType(true)
+                .followRedirects(false)
+                .method(Connection.Method.POST)
+                .data(params)
+                .cookies(cookies)
+                .execute();
 //        System.out.println(params);
 //        System.out.println(login.statusCode());
         if (login.statusCode() == HttpURLConnection.HTTP_MOVED_TEMP) {
@@ -129,7 +142,6 @@ public class HytcCasLoginProcess {
                     .ignoreContentType(true)
                     .followRedirects(true)
                     .method(Connection.Method.POST)
-                    .header("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1")
                     .cookies(cookies);
             // 请求，再次更新cookie
             login = con.execute();
@@ -139,12 +151,15 @@ public class HytcCasLoginProcess {
         } else if (login.statusCode() == HttpURLConnection.HTTP_OK) {
             // 登陆失败
             Document doc = login.parse();
-            Element msg = doc.getElementById("msg");
+            Element msg = doc.getElementsByClass("err").get(0);
 //            System.out.println(msg);
-            throw new RuntimeException(msg.text());
+            if (!msg.text().equals("验证码不正确")) {
+                throw new RuntimeException(msg.text());
+            }
         } else {
             // 服务器可能出错
             throw new RuntimeException("教务系统服务器可能出错了，Http状态码是：" + login.statusCode());
         }
+        return null;
     }
 }

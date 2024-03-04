@@ -39,22 +39,22 @@ public class ApiController {
             if (cookies == null) {
                 throw new RuntimeException("登陆失败，cookies返回为null");
             }
-            StringBuffer buffer = new StringBuffer();
+            StringBuilder builder = new StringBuilder();
             int size = 0;
             for (String key : cookies.keySet()) {
                 if (size == cookies.size() - 1) {
-                    buffer.append(key);
-                    buffer.append('=');
-                    buffer.append(cookies.get(key));
+                    builder.append(key);
+                    builder.append('=');
+                    builder.append(cookies.get(key));
                 } else {
-                    buffer.append(key);
-                    buffer.append('=');
-                    buffer.append(cookies.get(key));
-                    buffer.append(';');
+                    builder.append(key);
+                    builder.append('=');
+                    builder.append(cookies.get(key));
+                    builder.append(';');
                 }
                 size++;
             }
-            map.put("cookies", buffer.toString());
+            map.put("cookies", builder.toString());
             return map;
         } catch (Exception e) {
             e.printStackTrace();

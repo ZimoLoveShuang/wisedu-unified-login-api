@@ -1,4 +1,4 @@
-package wiki.zimo.wiseduunifiedloginapi.process;
+package wiki.zimo.wiseduunifiedloginapi.process.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -11,6 +11,7 @@ import wiki.zimo.wiseduunifiedloginapi.builder.IapLoginEntityBuilder;
 import wiki.zimo.wiseduunifiedloginapi.entity.IapLoginEntity;
 import wiki.zimo.wiseduunifiedloginapi.helper.ImageHelper;
 import wiki.zimo.wiseduunifiedloginapi.helper.TesseractOCRHelper;
+import wiki.zimo.wiseduunifiedloginapi.process.OcrLoginProcess;
 import wiki.zimo.wiseduunifiedloginapi.trust.HttpsUrlValidator;
 
 import java.io.File;
@@ -21,17 +22,12 @@ import java.util.Map;
 /**
  * CLOUD认证
  */
-public class IapLoginProcess {
-    private IapLoginEntity loginEntity;
-    private Map<String, String> params;
-
+public class IapLoginProcess extends OcrLoginProcess {
     public IapLoginProcess(String loginUrl, Map<String, String> params) {
-        this.loginEntity = new IapLoginEntityBuilder().loginUrl(loginUrl).build();
-        this.params = params;
+        super(loginUrl, params, IapLoginEntityBuilder.class);
     }
 
     public Map<String, String> login() throws Exception {
-
         // 忽略证书错误
         HttpsUrlValidator.retrieveResponseFromServer(loginEntity.getLoginUrl());
 
@@ -79,7 +75,7 @@ public class IapLoginProcess {
         params.put("dllt", "");
 
         // 申请It
-        String itUrl = loginEntity.getItUrl();
+        String itUrl = ((IapLoginEntity) loginEntity).getItUrl();
         Map<String, String> itData = new HashMap<>();
         itData.put("lt", res.url().getQuery().substring("_2lBepC=".length()));
 //        System.out.println(itData);
@@ -109,7 +105,7 @@ public class IapLoginProcess {
 //        System.out.println(params);
 
         // 登陆地址处理
-        String login_url = loginEntity.getDoLoginUrl();
+        String login_url = ((IapLoginEntity) loginEntity).getDoLoginUrl();
 //        System.out.println(login_url);
 
         // 是否需要验证码地址处理
@@ -146,6 +142,11 @@ public class IapLoginProcess {
             // 模拟登陆
             return iapSendLoginData(login_url, headers, cookies, params);
         }
+    }
+
+    @Override
+    protected Map<String, String> casSendLoginData(String login_url, Map<String, String> cookies, Map<String, String> params) throws Exception {
+        return null;
     }
 
     /**
@@ -225,7 +226,7 @@ public class IapLoginProcess {
      * @throws IOException
      * @throws TesseractException
      */
-    private String ocrCaptcha(Map<String, String> cookies, String captcha_url) throws
+    protected String ocrCaptcha(Map<String, String> cookies, String captcha_url) throws
             IOException, TesseractException {
         while (true) {
             String filePach = System.getProperty("user.dir") + File.separator + System.currentTimeMillis() + ".jpg";
@@ -245,27 +246,5 @@ public class IapLoginProcess {
                 return s;
             }
         }
-    }
-
-    /**
-     * 判断ocr识别出来的结果是否符合条件
-     *
-     * @param s
-     * @param len
-     * @return
-     */
-    private boolean judge(String s, int len) {
-        if (s == null || s.length() != len) {
-            return false;
-        }
-
-        for (int i = 0; i < s.length(); i++) {
-            char ch = s.charAt(i);
-            if (!(Character.isDigit(ch) || Character.isLetter(ch))) {
-                return false;
-            }
-        }
-
-        return true;
     }
 }

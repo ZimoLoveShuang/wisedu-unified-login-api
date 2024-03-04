@@ -16,6 +16,5 @@ api-info:
   title: 模拟登陆金智教务系统统一登陆获取登录后cookies的API——Java
   version: 1.0
   description: "<h3>处理流程</h3><p>接收请求参数-&gt;模拟请求对应教务系统，获取It等需要提交的表单信息-&gt;检查是否需要验证码-&gt;识别验证码-&gt;发起登陆请求-&gt;获取登陆后的cookies</p><h3>二次开发时需要注意金智的反爬策略</h3><ol><li>一个页面一个cookie</li><li>部分教务系统对密码字段做了aes加密</li><li>部分教务系统做了前端加密，如电子科大</li></ol>"
-# 默认宜宾学院教务系统的地址
 # 登陆页同时也是登陆接口
-LOGIN_API: http://authserver.yibinu.edu.cn/authserver/login?service=http%3A%2F%2Fehall.yibinu.edu.cn%2Flogin%3Fservice%3Dhttp%3A%2F%2Fehall.yibinu.edu.cn%2Fnew%2Findex.html
+LOGIN_API: https://authserver.cjlu.edu.cn/authserver/login
